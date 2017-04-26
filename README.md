@@ -1,6 +1,5 @@
 # atomdft
 
-cualquier cosa
 To do:
 
 *Orbitales y Func relativistas.
