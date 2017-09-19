@@ -162,8 +162,8 @@ void Scf::run(vector<Orbital*> &Atom,double w,double al,double ro,double alf){
 
 	     }
 	     iteraciones++;
-	     if(fabs(e2[Atom.size()-1]-e1[Atom.size()-1])<0.0001){
-	    	 alfa=0.5;
+	     if(fabs(e2[Atom.size()-1]-e1[Atom.size()-1])<0.00001){
+	    	 alfa=0.7;
 	     }
 	}
 	cout<<"iteraciones: "<<iteraciones<<endl;

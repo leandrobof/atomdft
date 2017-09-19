@@ -15,6 +15,8 @@ using namespace std;
 void create( Orbital_spline **a,Orbital_spline **b,vector<Integrand*> &c,vector<Integrand*> &d,Potential_spline &va,Potential_spline &vb,Potential_spline &vc);
 void borrar(vector<Integrand*> &,vector<Integrand*> &);
 double Hubbard(Scf &a,vector<Orbital*> &b,const int &c );
+void SK_table(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,Potential_spline &Veff0,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo);
+
 int main(int argc,char *argv[]){
 int Z;
 int n;
@@ -42,10 +44,11 @@ return 1;
 }
 else{
 	string str2=str.substr(str.find("Relativistic")+12);
-	if(str2.find("True") != -1){
+	string str3=str2.substr(str2.find_first_not_of(" "),str2.find_last_not_of(" "));
+	if(str3=="True"){
 		Relativistic=true;
 	}
-	else if(str2.find("False")!=-1){
+	else if(str3=="False"){
 		Relativistic=false;
 	}else {cout<<"\"Relativistic\" has only values \"True\" or \"False\"\n"<<endl;
 	return 1;}
@@ -57,10 +60,11 @@ return 1;
 }
 else{
 	string str2=line2.substr(line2.find("GGA")+3);
-	if(str2.find("True") != -1){
+	string str3=str2.substr(str2.find_first_not_of(" "),str2.find_last_not_of(" "));
+	if(str3=="True" ){
 		gga=true;
 	}
-	else if(str2.find("False")!=-1){
+	else if(str3=="False"){
 		gga=false;
 	}else {cout<<"\"GGA\" has only values \"True\" or \"False\"\n"<<endl;
 	return 1;}
@@ -83,10 +87,11 @@ scf.initialize();
 // n1_s n2_p n3_d
 string SK[3];
 atomo>>SK[0];atomo>>SK[1];atomo>>SK[2];
+map<string,int> index;
 
 //Lee entrada y crea vector de Orbitales.
 if(Relativistic==false){
-map<string,int> index;
+
 cout<<Z<<endl;
 string orbital;
 int i=0;
@@ -107,6 +112,7 @@ if(atomo.is_open()){
 atomo.close();
 }
 else{
+	int i=0;
 	double n_ocup_alfa,n_ocup_beta;
 	string orbital;
 	if(atomo.is_open()){
@@ -118,31 +124,56 @@ else{
 
 			n=int(orbital[0]-'0');
 			l=x[orbital[1]];
+			index[orbital]=i;
 			if(l>0){
 				Atom.push_back(new Orbital_rel(n,l,n_ocup_alfa,1,Z,-Z*Z/(2.*n*n),t,scf.Nt()));
 				Atom.push_back(new Orbital_rel(n,l,n_ocup_beta,-1,Z,-Z*Z/(2.*n*n),t,scf.Nt()));
+			    i++;
 			}
 			else{Atom.push_back(new Orbital_rel(n,l,n_ocup_alfa+n_ocup_beta,1,Z,-Z*Z/(2.*n*n),t,scf.Nt()));}
-
+            i++;
 		}
 	}
 	atomo.close();
 }
 
-scf.run(Atom,0,1,1,0.2);
+scf.run(Atom,0,1,1,0.4);
 
-/*
+
 double e[3]={0.,0.,0.};
 double ocupation[3]={0.,0.,0.};
 double U[3]={0.,0.,0.};
 
-for(int i=0;i<3;i++){
-	if (index.count(SK[i])>0){                           //Comprueba si el orbitalseleccionado para las tabla es un orbital calculado.
-		e[i]=Atom[index[SK[i]]]->energy();
-		ocupation[i]=Atom[index[SK[i]]]->ocup();
-        U[i]=Hubbard(scf,Atom,index[SK[i]]);          // Desmarcar para habilitar Hubbard
-	}
+if(Relativistic==false){
+	for(int i=0;i<3;i++){
+		if (index.count(SK[i])>0){                          //Comprueba si el orbitalseleccionado para las tabla es un orbital calculado.
+			e[i]=Atom[index[SK[i]]]->energy();
+			ocupation[i]=Atom[index[SK[i]]]->ocup();
+			//U[i]=Hubbard(scf,Atom,index[SK[i]]);          // Desmarcar para habilitar Hubbard
 
+		}
+	}
+}
+else{
+	for(int i=0;i<3;i++){
+		if (index.count(SK[i])>0){                           //Comprueba si el orbitalseleccionado para las tabla es un orbital calculado.
+			l=x[SK[i][1]];
+			if(l>0){
+			    e[i]=(l/(2.*l+1.))*Atom[index[SK[i]]+1]->energy()+((l+1.)/(2.*l+1.))*Atom[index[SK[i]]]->energy();
+			    ocupation[i]=Atom[index[SK[i]]]->ocup()+Atom[index[SK[i]]+1]->ocup();
+			    //U[i]=Hubbard(scf,Atom,index[SK[i]]);          // Desmarcar para habilitar Hubbard
+
+
+			}
+		    else{
+		    	e[i]=Atom[index[SK[i]]]->energy();
+		    	ocupation[i]=Atom[index[SK[i]]]->ocup();
+
+
+		    }
+
+		}
+	}
 }
 
 scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.2);
@@ -167,12 +198,33 @@ scf.run(Atom,atof(argv[5]),atof(argv[6]),atof(argv[7]),0.3);
 //Array  splines de los orbitales.
 Orbital_spline *C[3]={NULL,NULL,NULL};
 
+if (Relativistic==true){
+	for(int i=0;i<3;i++){
+		if(index.count(SK[i])>0){
+			double o[N];
+			l=x[SK[i][1]];
+			if(l>0){
+			for(int j=0;j<N;j++){
+				o[j]=(*(Atom[index[SK[i]]+1]))(j)*(l/2.*l+1.)+(*(Atom[index[SK[i]]]))(j)*(l+1.)/(2.*l+1.);
+			}
+			}
+			else{
+				for(int j=0;j<N;j++){
+					o[j]=(*(Atom[index[SK[i]]]))(j);
+				}
+			}
+
+			C[i]=new Orbital_spline(o,r,e[i],l,N);
+		}
+	}
+}
+else{
 for(int i=0;i<3;i++){
 	if(index.count(SK[i])>0){
 		C[i]=new Orbital_spline(*(Atom[index[SK[i]]]),r,N);
 	}
 
-}
+}}
 
 for(int i=0;i<N;i++){
 	veff2[i]=veff[i]-vconf[i];
@@ -181,83 +233,15 @@ for(int i=0;i<N;i++){
 Potential_spline Veff(veff2,r,N);
 Potential_spline Vconf(vconf,r,N);
 
+string simbolo(argv[1]);
 
-vector<Integrand*> S(10,NULL);
-vector<Integrand*> V(10,NULL);
-
-double d=0.2;
-create(C,C,S,V,Veff,Veff0,Vconf);
-
-
-gauss g(50,d);
-
-ofstream salida2("Ni-Ni.skf");
-
-salida2<<"0.02"<<" "<<"599"<<endl;
-salida2<<e[2]<<" "<<e[1]<<"  "<<e[0]<<"  0.0  "<<U[2]<<"  "<<U[1]<<"  "<<U[0]<<"  "<<ocupation[2]<<"  "<<ocupation[1]<<"  "<<ocupation[0]<<endl;
-salida2<<"12.01, 19*0.0"<<endl;
-
-for(int i=0;i<19;i++){
-	salida2<<"20*1.0,"<<endl;
-}
-
-double overlap[10];
-double H[10];
-double s[10];
-double v[10];
-
-for(int i=0;i<10;i++){
-		H[i]=0.00;
-		overlap[i]=0.00;
-		s[i]=0.0;
-		v[i]=0.0;
-}
-
-while(2*d<12){
-	g.integrate2d(0,1,0,pi,S,V,s,v);
-
-    for(int i=0;i<10;i++){
-    	if(V[i]!=NULL){
-    		overlap[i]=s[i];
-    		H[i]=V[i]->energy()*overlap[i]+v[i];
-    	}
-	}
-
-
-	for(int i=9;i>=0;i--){
-		salida2<<H[i]<<"  ";
-	}
-
-	for(int i=9;i>=0;i--){
-			salida2<<overlap[i]<<"  ";
-	}
-    for(int i=0;i<10;i++){
-    	s[i]=0.;
-    	v[i]=0.;
-
-    }
-
-
-	salida2<<endl;
-    d=d+0.01;
-    g.update_a(d);
-
-
-}
-
-salida2<<"Spline"<<endl;
-salida2<<"2 1.28"<<endl;
-salida2<<"2.151029456234113 3.917667206325493 -0.4605879014976964"<<endl;
-salida2<<"1.2 1.24    3.344853 -8.185615473079642 8.803750000000022 1.68154567477936"<<endl;
-salida2<<"1.24 1.28    0.016 -0.006590813456982203 -0.02356970905317782 -0.09209220073124012 0.2061755069509315 -0.1001089592255145"<<endl;
-borrar(S,V);
-salida2.close();
+SK_table(C,C,Veff,Veff0,Vconf,e,U,ocupation,simbolo+"-"+simbolo+".skf");
 
 
 delete C[0];
 delete C[1];
 delete C[2];
-*/
+
 for (int i=0;i<Atom.size();i++){
 	delete Atom[i];
 }
@@ -335,3 +319,73 @@ double Hubbard(Scf &a,vector<Orbital*> &b,const int &c ){
 	a.run(b,0,1,1,0.3);
 	return (ef-eb)/h;
 }
+
+void SK_table(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,Potential_spline &Veff0,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo){
+vector<Integrand*> S(10,NULL);
+vector<Integrand*> V(10,NULL);
+
+double d=0.2;
+create(A,B,S,V,Veff,Veff0,Vconf);
+
+
+gauss g(50,d);
+
+ofstream salida2(archivo);
+
+salida2<<"0.02"<<" "<<"599"<<endl;
+salida2<<e[2]<<" "<<e[1]<<"  "<<e[0]<<"  0.0  "<<U[2]<<"  "<<U[1]<<"  "<<U[0]<<"  "<<ocupation[2]<<"  "<<ocupation[1]<<"  "<<ocupation[0]<<endl;
+salida2<<"12.01, 19*0.0"<<endl;
+
+for(int i=0;i<19;i++){
+	salida2<<"20*1.0,"<<endl;
+}
+
+double overlap[10];
+double H[10];
+double s[10];
+double v[10];
+
+for(int i=0;i<10;i++){
+		H[i]=0.00;
+		overlap[i]=0.00;
+		s[i]=0.0;
+		v[i]=0.0;
+}
+
+while(2*d<12){
+	g.integrate2d(0,1,0,pi,S,V,s,v);
+
+    for(int i=0;i<10;i++){
+    	if(V[i]!=NULL){
+    		overlap[i]=s[i];
+    		H[i]=V[i]->energy()*overlap[i]+v[i];
+    	}
+	}
+
+
+	for(int i=9;i>=0;i--){
+		salida2<<H[i]<<"  ";
+	}
+
+	for(int i=9;i>=0;i--){
+			salida2<<overlap[i]<<"  ";
+	}
+    for(int i=0;i<10;i++){
+    	s[i]=0.;
+    	v[i]=0.;
+
+    }
+
+
+	salida2<<endl;
+    d=d+0.01;
+    g.update_a(d);
+
+
+}
+
+
+borrar(S,V);
+salida2.close();
+}
+

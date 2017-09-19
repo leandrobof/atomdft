@@ -380,7 +380,7 @@ void Orbital_rel::outward(double *veff,double *r){
 	  	for (int i=0;i<4;i++){
 	  	  inicial(r[i+j],y);
 	  	  abm.inicializar(Ec,y,i+j);
-	  	  Rl[i+j]=y[0]; Ql[i+j]=0;
+	  	  Rl[i+j]=y[0]; Ql[i+j]=y[1];
 
 	  	}
 	  	double x0,x1;
@@ -503,6 +503,12 @@ void Orbital_rel::radial(){
     	  i--;
 
       }
+      if(Rl[i] < 0){
+    	  for(int j=0;j<Nt;j++){
+    		  Rl[j]=-Rl[j];
+    	  }
+      }
+
 
 
 };
@@ -552,6 +558,22 @@ Orbital_spline::Orbital_spline( Orbital &a,double *t,int N){
 	for (int i=1;i<N+1;i++){
     	r[i]=t[i-1];
 		orb[i]=a(i-1);
+    }
+    R=gsl_spline_alloc (gsl_interp_cspline, N+1);
+    accR=gsl_interp_accel_alloc ();
+    gsl_spline_init (R, r, orb,N+1);
+};
+Orbital_spline::Orbital_spline( double *a,double *t,double energy,int angl,int N){
+	l=angl;
+	rmax=t[N-1];
+	e=energy;
+	double r[N+1];
+	double orb[N+1];
+    r[0]=0;
+    orb[0]=0;
+	for (int i=1;i<N+1;i++){
+    	r[i]=t[i-1];
+		orb[i]=a[i-1];
     }
     R=gsl_spline_alloc (gsl_interp_cspline, N+1);
     accR=gsl_interp_accel_alloc ();

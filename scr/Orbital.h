@@ -104,7 +104,8 @@ private:
     double e;
 public:
     Orbital_spline();
-    Orbital_spline( Orbital &,double *,int);
+    Orbital_spline( Orbital &,double *,int N);
+    Orbital_spline(double *,double *,double energy,int angl ,int N);
     Orbital_spline(const Orbital_spline &);
     Orbital_spline & operator=(const Orbital_spline &a);
     gsl_spline * spline(){return R;}
