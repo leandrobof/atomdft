@@ -139,7 +139,7 @@ double V::calculate(double &r1,double &r2,double &sin1,double &sin2,double &cos1
 
 	}
 	else{
-		I=(gsl_spline_eval(R1,r1,accR1)*gsl_spline_eval(R2,r2,accR2))*(gsl_spline_eval(v2,r1,accv1)+(gsl_spline_eval(v2,r2,accv1)-gsl_spline_eval(v1,r2,accv2))-gsl_spline_eval(vconf,r2,accvconf)/*-gsl_spline_eval(vconf,r1(u,v),accvconf)*/)*f(sin1,sin2,cos1,cos2);
+		I=(gsl_spline_eval(R1,r1,accR1)*gsl_spline_eval(R2,r2,accR2))*(gsl_spline_eval(v1,r1,accv1)-gsl_spline_eval(vconf,r2,accvconf))*f(sin1,sin2,cos1,cos2);
 	}
 
     return I;

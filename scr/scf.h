@@ -10,6 +10,7 @@
 #include "Orbital.h"
 #include "hartree.h"
 #include "xc_potential.h"
+#include <map>
 
 void dens_inicial(double *r,double *rho,int N,int Z);
 void new_rho(double *rho, vector<Orbital> &Atom,double alfa,int N);
@@ -18,6 +19,8 @@ private:
 	int Z;
 	int N;
 	double h;
+	double max;
+	double min;
 	double *t;
 	double *r;
 	double *veff;
@@ -30,15 +33,20 @@ private:
 	double a;
 	double r0;
 	bool Relativistic;
-
-    Xc *vxc;
+    bool gga;
+    string SK[3];
+	Xc *vxc;
+    std::map<char,int> x;
+    std::map<string,int> index;
 public:
-	Scf(int z,double tmin,double tmax,double step,bool,bool);
+	Scf(double tmin,double tmax,double step);
     ~Scf();
-    void initialize();
+    int initialize(vector<Orbital*> &Atom,string archivo);
     void run(vector<Orbital*> &Atom,double W,double a,double r0,double alf);
     int z(){return Z;};
     int Nt(){return N;}
+    void energy(vector<Orbital*> &Atom,double *e,double *nocup);
+    void orbital(vector<Orbital*> &Atom,Orbital_spline **);
     double* tgrid(){return t;}
     double* rgrid(){return r;}
     double* Vconf(){return vconf;};

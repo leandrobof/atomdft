@@ -1,7 +1,7 @@
 Relativistic True
-GGA False
+GGA True
 42
-5s 4p 4d
+5s 5p 4d
 1s  1 1
 2s  1 1
 2p  3 3
@@ -12,3 +12,4 @@ GGA False
 4p  3 3
 4d  5 0
 5s  1 0
+5p  0 0

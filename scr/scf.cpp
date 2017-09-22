@@ -36,48 +36,153 @@ void new_rho(double *rho, double *grad,vector<Orbital*> &Atom,double alfa,int N)
 
 	}
 };
-Scf::Scf(int z,double tmin,double tmax,double step,bool rel,bool gga){
-Z=z;
+Scf::Scf(double tmin,double tmax,double step){
+Z=0;
 h=step;
-N=(tmax-tmin)/h;
-
-t=new double [N];
-r=new double [N];
-veff=new double [N];
-vn=new double [N];
-vconf=new double [N];
-rho=new double [N];
-
-grad=new double [N];
+max=tmax;
+min=tmin;
 alfa=0.3;
 W=0;
 a=1;
 r0=1;
-Relativistic=rel;
+Relativistic=false;
+gga=false;
 
-t[0]=tmin;
-if(gga==false){
-		vxc=new Xc_lda(N,Relativistic);
+x['s']=0;
+x['p']=1;
+x['d']=2;
+x['f']=3;
+
+}
+
+int Scf::initialize(vector<Orbital*> &Atom,string archivo){
+	ifstream atomo(archivo);
+
+	string line1;
+	string line2;
+	getline(atomo,line1);
+	getline(atomo,line2);
+	atomo>>Z;
+	atomo>>SK[0];atomo>>SK[1];atomo>>SK[2];
+
+	N=(log(Z*max)-min)/h;
+	t=new double [N];
+	r=new double [N];
+	veff=new double [N];
+	vn=new double [N];
+	vconf=new double [N];
+	rho=new double [N];
+	grad=new double [N];
+
+/*****Genera malla uniforme t, y potencial*****************/
+	for (int i=0;i<N;i++){
+		t[i]=min+i*h;
+		r[i]=exp(t[i])/Z;
+		vn[i]=-Z/r[i];
+		rho[i]=0;
+		vconf[i]=W/(1+exp(-a*(r[i]-r0)));
+		veff[i]=vn[i]+vconf[i];
+	}
+
+
+
+
+	if(line1.find("Relativistic")==-1){
+		cout<<"Keyword \"Relativistic\" not found\n"<<endl;
+	return 1;
 	}
 	else{
-		vxc=new Xc_gga(N);
+		string str2=line1.substr(line1.find("Relativistic")+12);
+		string str3=str2.substr(str2.find_first_not_of(" "),str2.find_last_not_of(" "));
+		if(str3=="True"){
+			Relativistic=true;
+		}
+		else if(str3=="False"){
+			Relativistic=false;
+		}else {cout<<"\"Relativistic\" has only values \"True\" or \"False\"\n"<<endl;
+		return 1;}
 	}
-};
-void Scf::initialize(){
+
+	if(line2.find("GGA")==-1){
+		cout<<"Keyword \"GGA\" not found\n"<<endl;
+	return 1;
+	}
+	else{
+		string str2=line2.substr(line2.find("GGA")+3);
+		string str3=str2.substr(str2.find_first_not_of(" "),str2.find_last_not_of(" "));
+		if(str3=="True" ){
+			gga=true;
+		}
+		else if(str3=="False"){
+			gga=false;
+		}else {cout<<"\"GGA\" has only values \"True\" or \"False\"\n"<<endl;
+		return 1;}
+	}
+//****************************************************************
+int n;
+int l;
+double n_ocup;
+
+if(Relativistic==false){
+
+	cout<<Z<<endl;
+	string orbital;
+	int i=0;
+	if(atomo.is_open()){
+		while(atomo.good()){
+			atomo>>orbital;
+			atomo>>n_ocup;
+			if(atomo.eof())break;
+
+			n=int(orbital[0]-'0');
+			l=x[orbital[1]];
+			Atom.push_back(new Orbital_norel(n,l,n_ocup,Z,-Z*Z/(2.*n*n),t,N));
+	        index[orbital]=i;
+	        i++;
+
+		}
+	}
+	atomo.close();
+}
+else{
+		int i=0;
+		double n_ocup_alfa,n_ocup_beta;
+		string orbital;
+		if(atomo.is_open()){
+			while(atomo.good()){
+				atomo>>orbital;
+				atomo>>n_ocup_alfa;
+				atomo>>n_ocup_beta;
+				if(atomo.eof())break;
+
+				n=int(orbital[0]-'0');
+				l=x[orbital[1]];
+				index[orbital]=i;
+				if(l>0){
+					Atom.push_back(new Orbital_rel(n,l,n_ocup_alfa,1,Z,-Z*Z/(2.*n*n),t,N));
+					Atom.push_back(new Orbital_rel(n,l,n_ocup_beta,-1,Z,-Z*Z/(2.*n*n),t,N));
+				    i++;
+				}
+				else{Atom.push_back(new Orbital_rel(n,l,n_ocup_alfa+n_ocup_beta,1,Z,-Z*Z/(2.*n*n),t,N));}
+	            i++;
+			}
+		}
+		atomo.close();
+	}
+
 
 
 /***Genera malla uniforme t, y potencial*****************/
-	for (int i=0;i<N;i++){
-		t[i]=t[0]+i*h;
-		r[i]=exp(t[i])/Z;
 
-		vn[i]=-Z/r[i];
-	    rho[i]=0;
-	    vconf[i]=W/(1+exp(-a*(r[i]-r0)));
-	    veff[i]=vn[i]+vconf[i];
-	}
 
+if(gga==false){
+	vxc=new Xc_lda(N,Relativistic);
 }
+else{
+	vxc=new Xc_gga(N);
+}
+};
+
 Scf::~Scf(){
 	delete [] t;
 	delete [] r;
@@ -163,7 +268,7 @@ void Scf::run(vector<Orbital*> &Atom,double w,double al,double ro,double alf){
 	     }
 	     iteraciones++;
 	     if(fabs(e2[Atom.size()-1]-e1[Atom.size()-1])<0.00001){
-	    	 alfa=0.7;
+	    	 alfa=0.5;
 	     }
 	}
 	cout<<"iteraciones: "<<iteraciones<<endl;
@@ -194,6 +299,74 @@ void Scf::run(vector<Orbital*> &Atom,double w,double al,double ro,double alf){
 	delete [] e2;
 
 }
+void Scf::energy(vector<Orbital*> &Atom,double *e,double *ocupation){
+    int l;
+	if(Relativistic==false){
+		for(int i=0;i<3;i++){
+			if (index.count(SK[i])>0){                          //Comprueba si el orbitalseleccionado para las tabla es un orbital calculado.
+				e[i]=Atom[index[SK[i]]]->energy();
+				ocupation[i]=Atom[index[SK[i]]]->ocup();
+				//U[i]=Hubbard(scf,Atom,index[SK[i]]);          // Desmarcar para habilitar Hubbard
+
+			}
+		}
+	}
+	else{
+		for(int i=0;i<3;i++){
+			if (index.count(SK[i])>0){                           //Comprueba si el orbitalseleccionado para las tabla es un orbital calculado.
+				l=x[SK[i][1]];
+				if(l>0){
+				    e[i]=(l/(2.*l+1.))*Atom[index[SK[i]]+1]->energy()+((l+1.)/(2.*l+1.))*Atom[index[SK[i]]]->energy();
+				    ocupation[i]=Atom[index[SK[i]]]->ocup()+Atom[index[SK[i]]+1]->ocup();
+				    //U[i]=Hubbard(scf,Atom,index[SK[i]]);          // Desmarcar para habilitar Hubbard
+
+
+				}
+			    else{
+			    	e[i]=Atom[index[SK[i]]]->energy();
+			    	ocupation[i]=Atom[index[SK[i]]]->ocup();
+
+
+			    }
+
+			}
+		}
+	}
+}
+void Scf::orbital(vector<Orbital*> &Atom,Orbital_spline **C){
+	int l;
+	if (Relativistic==true){
+		double e[3];
+		double nocup[3];
+		energy(Atom,e,nocup);
+		for(int i=0;i<3;i++){
+			if(index.count(SK[i])>0){
+				double o[N];
+				l=x[SK[i][1]];
+				if(l>0){
+					for(int j=0;j<N;j++){
+						o[j]=(*(Atom[index[SK[i]]+1]))(j)*l/(2.*l+1.)+(*(Atom[index[SK[i]]]))(j)*(l+1.)/(2.*l+1.);
+					}
+				}
+				else{
+					for(int j=0;j<N;j++){
+						o[j]=(*(Atom[index[SK[i]]]))(j);
+					}
+				}
+
+				C[i]=new Orbital_spline(o,r,e[i],l,N);
+			}
+		}
+	}
+	else{
+		for(int i=0;i<3;i++){
+			if(index.count(SK[i])>0){
+				C[i]=new Orbital_spline(*(Atom[index[SK[i]]]),r,N);
+			}
+		}
+	}
+}
+
 double* Scf::Veff_noconf(){
 	/*for(int i=0;i<N;i++){
 		veff[i]=veff[i]-vconf[i];
