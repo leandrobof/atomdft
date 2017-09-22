@@ -1,7 +1,0 @@
-Relativistic False
-GGA True
-6
-2s 2p 0
-1s  2
-2s  2
-2p  2
