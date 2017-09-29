@@ -356,9 +356,9 @@ void Orbital_rel::inicial(double r,double *R){
 	R[1]=R[0]*c*(b+k)/Z;
 }
 void Orbital_rel::final(double r,double *R,double W){
-	double lamb=sqrt(-2*(e-W)-(e-W)*(e-W)/(c*c));
+	double lamb=sqrt(-2.*(e-W)-(e-W)*(e-W)/(c*c));
     R[0]=exp(-lamb*r);
-    R[1]=-sqrt(-((e-W)/((e-W)+2*c*c)))*R[0];
+    R[1]=-sqrt(-((e-W)/((e-W)+2.*c*c)))*R[0];
 }
 
 void Orbital_rel::outward(double *veff,double *r){

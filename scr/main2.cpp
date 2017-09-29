@@ -37,7 +37,7 @@ Scf scf(t0,tinf,h);
 
 scf.initialize(Atom,argv[1]);
 
-scf.run(Atom,0,1,1,0.4);
+scf.run(Atom,0,1,1,0.3);
 
 //scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
 

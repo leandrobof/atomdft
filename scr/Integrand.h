@@ -99,12 +99,12 @@ public:
 class S_pd_pi : public S{
 public:
 	S_pd_pi( Orbital_spline *, Orbital_spline *);
-	inline virtual double f(double sin1,double sin2,double cos1,double cos2){return (-1*sqrt(45)/4.)*sin1*sin2*cos2;}
+	inline virtual double f(double sin1,double sin2,double cos1,double cos2){return (1*sqrt(45)/4.)*sin1*sin2*cos2;}
 };
 class S_pd_sig : public S{
 public:
 	S_pd_sig( Orbital_spline *, Orbital_spline *);
-	inline virtual double f(double sin1,double sin2,double cos1,double cos2){return -1*sqrt(15)/4.*cos1*(3*cos2*cos2-1);}
+	inline virtual double f(double sin1,double sin2,double cos1,double cos2){return 1*sqrt(15)/4.*cos1*(3*cos2*cos2-1);}
 };
 class S_dd_sig : public S{
 public:
@@ -167,12 +167,12 @@ public:
 class V_pd_pi : public V{
 public:
 	V_pd_pi(Orbital_spline *, Orbital_spline *,Potential_spline &,Potential_spline &,Potential_spline &);
-	inline virtual double f(double sin1,double sin2,double cos1,double cos2){return (-1*sqrt(45)/4.)*sin1*sin2*cos2;}
+	inline virtual double f(double sin1,double sin2,double cos1,double cos2){return (1*sqrt(45)/4.)*sin1*sin2*cos2;}
 };
 class V_pd_sig :public V{
 public:
 	V_pd_sig(Orbital_spline *, Orbital_spline *,Potential_spline &,Potential_spline &,Potential_spline &);
-	inline virtual double f(double sin1,double sin2,double cos1,double cos2){return -1*sqrt(15)/4.*cos1*(3*cos2*cos2-1);}
+	inline virtual double f(double sin1,double sin2,double cos1,double cos2){return 1*sqrt(15)/4.*cos1*(3*cos2*cos2-1);}
 };
 class V_dd_del : public V{
 public:
