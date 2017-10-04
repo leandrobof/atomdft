@@ -65,7 +65,7 @@ for(int i=0;i<N;i++){
 Potential_spline Veff0(veff0,r,N);
 //*****
 
-scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.2);
+scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
 
 //*****
 //Array  splines de los orbitales.

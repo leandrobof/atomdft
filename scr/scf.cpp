@@ -202,8 +202,9 @@ void Scf::run(vector<Orbital*> &Atom,double w,double al,double ro,double alf){
 	a=al;
 	r0=ro;
 	for(int i=0;i<N;i++){
+		veff[i]=veff[i]-vconf[i];
 		vconf[i]=W/(1+exp(-a*(r[i]-r0)));
-
+		veff[i]=veff[i]+vconf[i];
 
 	}
 
