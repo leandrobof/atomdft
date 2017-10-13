@@ -29,6 +29,7 @@ public:
     int prin(){return n;};
     int ang(){return l;};
     void set_ocup(double o){noc=o;}
+    void set_e(double en){e=en;}
     double ocup(){return noc;};
     void resolver(double *,double *,double W);
     virtual void print()=0;

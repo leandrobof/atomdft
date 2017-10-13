@@ -47,7 +47,8 @@ a=1;
 r0=1;
 Relativistic=false;
 gga=false;
-
+restart=false;
+save=false;
 x['s']=0;
 x['p']=1;
 x['d']=2;
@@ -60,8 +61,12 @@ int Scf::initialize(vector<Orbital*> &Atom,string archivo){
 
 	string line1;
 	string line2;
+    string line3;
+	string line4;
 	getline(atomo,line1);
 	getline(atomo,line2);
+	getline(atomo,line3);
+	getline(atomo,line4);
 	atomo>>Z;
 	atomo>>SK[0];atomo>>SK[1];atomo>>SK[2];
 
@@ -80,7 +85,7 @@ int Scf::initialize(vector<Orbital*> &Atom,string archivo){
 		r[i]=exp(t[i])/Z;
 		vn[i]=-Z/r[i];
 		rho[i]=0;
-		vconf[i]=W/(1+exp(-a*(r[i]-r0)));
+		vconf[i]=0.;
 		veff[i]=vn[i]+vconf[i];
 	}
 
@@ -118,6 +123,39 @@ int Scf::initialize(vector<Orbital*> &Atom,string archivo){
 		}else {cout<<"\"GGA\" has only values \"True\" or \"False\"\n"<<endl;
 		return 1;}
 	}
+
+    if(line3.find("restart")==-1){
+			cout<<"Keyword \"restart\" not found\n"<<endl;
+		return 1;
+		}
+		else{
+			string str2=line3.substr(line3.find("restart")+7);
+			string str3=str2.substr(str2.find_first_not_of(" "),str2.find_last_not_of(" "));
+			if(str3=="True" ){
+				restart=true;
+			}
+			else if(str3=="False"){
+				restart=false;
+			}else {cout<<"\"restart\" has only values \"True\" or \"False\"\n"<<endl;
+			return 1;}
+		}
+
+    if(line4.find("save")==-1){
+ 			cout<<"Keyword \"save\" not found\n"<<endl;
+ 		return 1;
+ 		}
+ 		else{
+ 			string str2=line4.substr(line4.find("save")+4);
+ 			string str3=str2.substr(str2.find_first_not_of(" "),str2.find_last_not_of(" "));
+ 			if(str3=="True" ){
+ 				save=true;
+ 			}
+ 			else if(str3=="False"){
+ 				save=false;
+ 			}else {cout<<"\"save\" has only values \"True\" or \"False\"\n"<<endl;
+ 			return 1;}
+ 		}
+
 //****************************************************************
 int n;
 int l;
@@ -181,6 +219,10 @@ if(gga==false){
 else{
 	vxc=new Xc_gga(N);
 }
+
+if(restart==true){
+	readpot(Atom);
+}
 };
 
 Scf::~Scf(){
@@ -195,12 +237,15 @@ Scf::~Scf(){
     delete vxc;
 }
 
+
+
 void Scf::run(vector<Orbital*> &Atom,double w,double al,double ro,double alf){
 	/**************************************************************/
 	alfa=alf;
 	W=w;
 	a=al;
 	r0=ro;
+
 	for(int i=0;i<N;i++){
 		veff[i]=veff[i]-vconf[i];
 		vconf[i]=W/(1+exp(-a*(r[i]-r0)));
@@ -294,7 +339,9 @@ void Scf::run(vector<Orbital*> &Atom,double w,double al,double ro,double alf){
 	salida.close();
 
 	/******Se libera spline y acc*********************/
-
+    if(save==true){
+    	savepot(Atom);
+    }
 
 	delete [] e1;
 	delete [] e2;
@@ -373,3 +420,34 @@ double* Scf::Veff_noconf(){
 		veff[i]=veff[i]-vconf[i];
 	}*/
 return veff;};
+
+void Scf::readpot(vector<Orbital*> &Atom){
+	double en;
+	ifstream potfile("pot");
+
+	for (int i=0;i<Atom.size();i++){
+		    potfile>>en;
+			Atom[i]->set_e(en);
+		}
+
+	for(int i=0;i<N;i++){
+		potfile>>veff[i]>>rho[i];
+
+	}
+
+    potfile.close();
+}
+
+void Scf::savepot(vector<Orbital*> &Atom){
+	ofstream pot_file("pot");
+	for (int i=0;i<Atom.size();i++){
+			pot_file<<Atom[i]->energy()<<endl;
+		}
+
+	for(int i=0;i<N;i++){
+			pot_file<<veff[i]<<" "<<rho[i]<<endl;
+	}
+
+	pot_file.close();
+
+}

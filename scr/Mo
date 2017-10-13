@@ -1,5 +1,7 @@
 Relativistic True
 GGA True
+restart True
+save False
 42
 5s 5p 4d
 1s  1 1 

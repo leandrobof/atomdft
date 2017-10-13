@@ -34,8 +34,10 @@ private:
 	double r0;
 	bool Relativistic;
     bool gga;
+    bool restart;
+    bool save;
     string SK[3];
-	Xc *vxc;
+    Xc *vxc;
     std::map<char,int> x;
     std::map<string,int> index;
 public:
@@ -51,6 +53,8 @@ public:
     double* rgrid(){return r;}
     double* Vconf(){return vconf;};
     double* Veff_noconf();
+    void readpot(vector<Orbital*> &Atom);
+    void savepot(vector<Orbital*> &Atom);
 };
 
 
