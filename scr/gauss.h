@@ -27,14 +27,18 @@ private:
     double cos1;
     double cos2;
     double dV;
-
+    double veff1;
+    double vconf2;
+    double R1[3];
+    double R2[3];
 
 public:
 	gauss();
 	gauss(int N,double o);
 	virtual ~gauss();
-    void integrate2d(double b1,double b2,double c,double d, vector<Integrand*> S,vector <Integrand*> V,double*s,double*v);
-    void update_a(double o){a=o;};
+    void integrate2d(Potential_spline &veff,Potential_spline &vconf,Orbital_spline **A,Orbital_spline **B,vector<Integrand*> S,vector <Integrand*> V,double*s,double*v);
+    void update_a(double o){a=o;
+    c1=(2./log(3.))*acosh(1.+0.4/a);};
 };
 
 #endif /* GAUSS_H_ */

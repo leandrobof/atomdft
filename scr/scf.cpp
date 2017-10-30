@@ -20,6 +20,15 @@ void dens_inicial(double *r,double *rho,int N,int Z){
         rho[i]=-1/(3*pi*pi)*pow(-2*v,3/2.);
 	}
 }
+/**
+ * @brief Actualiza la densidad y gradiente a partir de la funciones radiales de los nuevos orbitales y la antigua densidad.
+ * $$\rho_{new}=(1-\alpha)\rho+\alpha\rho_{old}$$
+ * @param rho = array  densidad.
+ * @param grad = array  gradiente.
+ * @param Atom = vector con Orbitales, de donde se construira la nueva densidad.
+ * @param alfa = parametro de damping
+ * @param N = Numero de elementos de rho y grad;
+ */
 
 void new_rho(double *rho, double *grad,vector<Orbital*> &Atom,double alfa,int N){
 	double nrho;
@@ -49,6 +58,7 @@ Relativistic=false;
 gga=false;
 restart=false;
 save=false;
+ocup_type=Average;
 x['s']=0;
 x['p']=1;
 x['d']=2;
@@ -69,7 +79,7 @@ int Scf::initialize(vector<Orbital*> &Atom,string archivo){
 	getline(atomo,line4);
 	atomo>>Z;
 	atomo>>SK[0];atomo>>SK[1];atomo>>SK[2];
-
+	atomo.ignore(256, '\n');
 	N=(log(Z*max)-min)/h;
 	t=new double [N];
 	r=new double [N];
@@ -163,46 +173,82 @@ double n_ocup;
 
 if(Relativistic==false){
 
-	cout<<Z<<endl;
+
 	string orbital;
+	string configuration;
 	int i=0;
 	if(atomo.is_open()){
-		while(atomo.good()){
-			atomo>>orbital;
-			atomo>>n_ocup;
-			if(atomo.eof())break;
+		getline(atomo,configuration);
+			int pos_ini=0;
+			int pos_fin=0;
 
-			n=int(orbital[0]-'0');
-			l=x[orbital[1]];
-			Atom.push_back(new Orbital_norel(n,l,n_ocup,Z,-Z*Z/(2.*n*n),t,N));
-	        index[orbital]=i;
-	        i++;
+			while((pos_fin=configuration.find(" ",pos_ini)) != string::npos){
 
-		}
+				n_ocup=atof((configuration.substr(pos_ini+2,(pos_fin-pos_ini-2))).c_str());
+				orbital=configuration.substr(pos_ini,2);
+				n=int(orbital[0]-'0');
+				l=x[orbital[1]];
+				Atom.push_back(new Orbital_norel(n,l,n_ocup,Z,-Z*Z/(2.*n*n),t,N));
+				index[orbital]=i;
+				pos_ini=pos_fin+1;
+                i++;
+
+			}
+
+			;
+
+
 	}
 	atomo.close();
 }
 else{
-		int i=0;
-		double n_ocup_alfa,n_ocup_beta;
-		string orbital;
-		if(atomo.is_open()){
-			while(atomo.good()){
-				atomo>>orbital;
-				atomo>>n_ocup_alfa;
-				atomo>>n_ocup_beta;
-				if(atomo.eof())break;
 
+	string orbital;
+	string configuration;
+	int i=0;
+	if(atomo.is_open()){
+		getline(atomo,configuration);
+			int pos_ini=0;
+			int pos_fin=0;
+
+			while((pos_fin=configuration.find(" ",pos_ini)) != string::npos){
+
+				n_ocup=atof((configuration.substr(pos_ini+2,(pos_fin-pos_ini-2))).c_str());
+				orbital=configuration.substr(pos_ini,2);
 				n=int(orbital[0]-'0');
 				l=x[orbital[1]];
 				index[orbital]=i;
 				if(l>0){
-					Atom.push_back(new Orbital_rel(n,l,n_ocup_alfa,1,Z,-Z*Z/(2.*n*n),t,N));
-					Atom.push_back(new Orbital_rel(n,l,n_ocup_beta,-1,Z,-Z*Z/(2.*n*n),t,N));
+					double n_ocup_1=0;
+					double n_ocup_2=0;
+					switch(ocup_type){
+
+					case Average:
+						n_ocup_1=(2.*l)/(2.*l+1.)*n_ocup/2.;
+					    n_ocup_2=(2.*l+2.)/(2.*l+1.)*n_ocup/2.;
+					break;
+
+					case Energy:
+						for (int j=n_ocup;j>0;j--){
+							if(n_ocup_1<2*l){
+								n_ocup_1++;
+							}
+							else{
+								n_ocup_2++;
+							}
+						}
+					break;
+					}
+
+					Atom.push_back(new Orbital_rel(n,l,n_ocup_2,1,Z,-Z*Z/(2.*n*n),t,N));
+					Atom.push_back(new Orbital_rel(n,l,n_ocup_1,-1,Z,-Z*Z/(2.*n*n),t,N));
 				    i++;
-				}
-				else{Atom.push_back(new Orbital_rel(n,l,n_ocup_alfa+n_ocup_beta,1,Z,-Z*Z/(2.*n*n),t,N));}
+					}
+
+				else{Atom.push_back(new Orbital_rel(n,l,n_ocup,1,Z,-Z*Z/(2.*n*n),t,N));}
 	            i++;
+	            pos_ini=pos_fin+1;
+
 			}
 		}
 		atomo.close();
@@ -316,6 +362,7 @@ void Scf::run(vector<Orbital*> &Atom,double w,double al,double ro,double alf){
 	     if(fabs(e2[Atom.size()-1]-e1[Atom.size()-1])<0.00001){
 	    	 alfa=0.5;
 	     }
+	     if (iteraciones>100)break;
 	}
 	cout<<"iteraciones: "<<iteraciones<<endl;
 	cout<<"Eh"<<"   "<<vh.energy()<<endl;

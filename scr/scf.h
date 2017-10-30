@@ -12,6 +12,9 @@
 #include "xc_potential.h"
 #include <map>
 
+enum ocupation{Average=0,Energy=1};
+
+
 void dens_inicial(double *r,double *rho,int N,int Z);
 void new_rho(double *rho, vector<Orbital> &Atom,double alfa,int N);
 class Scf{
@@ -36,6 +39,7 @@ private:
     bool gga;
     bool restart;
     bool save;
+    ocupation ocup_type;
     string SK[3];
     Xc *vxc;
     std::map<char,int> x;

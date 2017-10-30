@@ -87,70 +87,51 @@ double Density::calculate(double &r1,double &r2,double &sin1,double &sin2,double
 	    return 2*pi*a*(I1+I2);
 };
 */
-S::S( Orbital_spline *a, Orbital_spline *b) : Integrand(){
-	R1=a->spline();
-	R2=b->spline();
-	accR1=a->acc();
-	accR2=b->acc();
-	r1max=a->max();
-	r2max=b->max();
+S::S() : Integrand(){
+      l1=0;
+      l2=0;
 
 }
 
-double S::calculate(double &r1,double &r2,double &sin1,double &sin2,double &cos1,double &cos2){
+double S::calculate(double *R1,double *R2,double v1,double vconf,double &sin1,double &sin2,double &cos1,double &cos2){
 
-	double I;
-	if(r1>r1max or r2>r2max){
-		I=0;
-	}
-	else{
-		I=(gsl_spline_eval(R1,r1,accR1)*gsl_spline_eval(R2,r2,accR2))*f(sin1,sin2,cos1,cos2);
-	}
 
-    return I;
+
+	return	R1[l1]*R2[l2]*f(sin1,sin2,cos1,cos2);
+
+
+
 };
-S_ss::S_ss( Orbital_spline *a, Orbital_spline *b) : S(a,b){};
-S_sp::S_sp( Orbital_spline *a, Orbital_spline *b) : S(a,b){};
-S_pp_sig::S_pp_sig( Orbital_spline *a, Orbital_spline *b) : S(a,b){};
-S_pp_pi::S_pp_pi( Orbital_spline *a, Orbital_spline *b) : S(a,b){};
-S_sd::S_sd( Orbital_spline *a, Orbital_spline *b) : S(a,b){};
-S_pd_pi::S_pd_pi( Orbital_spline *a, Orbital_spline *b) : S(a,b){};
-S_pd_sig::S_pd_sig( Orbital_spline *a, Orbital_spline *b) : S(a,b){};
-S_dd_del::S_dd_del( Orbital_spline *a, Orbital_spline *b) : S(a,b){};
-S_dd_pi::S_dd_pi( Orbital_spline *a, Orbital_spline *b) : S(a,b){};
-S_dd_sig::S_dd_sig( Orbital_spline *a, Orbital_spline *b) : S(a,b){};
+S_ss::S_ss() : S(){l1=0;l2=0;};
+S_sp::S_sp() : S(){l1=0;l2=1;};
+S_pp_sig::S_pp_sig() : S(){l1=1;l2=1;};
+S_pp_pi::S_pp_pi() : S(){l1=1;l2=1;};
+S_sd::S_sd() : S(){l1=0;l2=2;};
+S_pd_pi::S_pd_pi() : S(){l1=1;l2=2;};
+S_pd_sig::S_pd_sig() : S(){l1=1;l2=2;};
+S_dd_del::S_dd_del() : S(){l1=2;l2=2;};
+S_dd_pi::S_dd_pi() : S(){l1=2;l2=2;};
+S_dd_sig::S_dd_sig() : S(){l1=2;l2=2;};
 
-V::V(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc ): S(a,b){
-	v1=va.spline();
-	accv1=va.acc();
-	v2=vb.spline();
-	accv2=vb.acc();
-	vconf=vc.spline();
-	accvconf=vc.acc();
-	rmin=va.min();
-    e=b->energy();
+V::V(double ener) : S(){
+	e=ener;
+
+
 };
 //Mejorar la evaluacion de integrales.Las casos menores a rmin no se evaluan actualmente.
-double V::calculate(double &r1,double &r2,double &sin1,double &sin2,double &cos1,double &cos2){
+double V::calculate(double *R1,double *R2,double v1,double vconf,double &sin1,double &sin2,double &cos1,double &cos2){
 
-	double I;
-	if(r1>r1max or r2>r2max or r1<rmin or r2<rmin){
-		I=0;
 
-	}
-	else{
-		I=(gsl_spline_eval(R1,r1,accR1)*gsl_spline_eval(R2,r2,accR2))*(gsl_spline_eval(v1,r1,accv1)-gsl_spline_eval(vconf,r2,accvconf))*f(sin1,sin2,cos1,cos2);
-	}
+	return  R1[l1]*R2[l2]*(v1-vconf)*f(sin1,sin2,cos1,cos2);
 
-    return I;
 };
-V_ss::V_ss(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc) : V(a,b,va,vb,vc){};
-V_sp::V_sp(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc) : V(a,b,va,vb,vc){};
-V_pp_sig::V_pp_sig(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc) : V(a,b,va,vb,vc){};
-V_pp_pi::V_pp_pi(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc) : V(a,b,va,vb,vc){};
-V_pd_pi::V_pd_pi(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc) : V(a,b,va,vb,vc){};
-V_pd_sig::V_pd_sig(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc) : V(a,b,va,vb,vc){};
-V_sd::V_sd(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc) : V(a,b,va,vb,vc){};
-V_dd_del::V_dd_del(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc) : V(a,b,va,vb,vc){};
-V_dd_pi::V_dd_pi(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc) : V(a,b,va,vb,vc){};
-V_dd_sig::V_dd_sig(Orbital_spline *a, Orbital_spline *b,Potential_spline &va,Potential_spline &vb,Potential_spline &vc) : V(a,b,va,vb,vc){};
+V_ss::V_ss(double en) : V(en){l1=0;l2=0;};
+V_sp::V_sp(double en) : V(en){l1=0;l2=1;};
+V_pp_sig::V_pp_sig(double en) : V(en){l1=1;l2=1;};
+V_pp_pi::V_pp_pi(double en) : V(en){l1=1;l2=1;};
+V_pd_pi::V_pd_pi(double en) : V(en){l1=1;l2=2;};
+V_pd_sig::V_pd_sig(double en) : V(en){l1=1;l2=2;};
+V_sd::V_sd(double en) : V(en){l1=0;l2=2;};
+V_dd_del::V_dd_del(double en) : V(en){l1=2;l2=2;};
+V_dd_pi::V_dd_pi(double en) : V(en){l1=2;l2=2;};
+V_dd_sig::V_dd_sig(double en) : V(en){l1=2;l2=2;};

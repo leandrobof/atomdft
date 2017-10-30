@@ -12,7 +12,7 @@
 
 using namespace std;
 
-void create( Orbital_spline **a,Orbital_spline **b,vector<Integrand*> &c,vector<Integrand*> &d,Potential_spline &va,Potential_spline &vb,Potential_spline &vc);
+void create( Orbital_spline **a,Orbital_spline **b,vector<Integrand*> &c,vector<Integrand*> &d);
 void borrar(vector<Integrand*> &,vector<Integrand*> &);
 double Hubbard(Scf &a,vector<Orbital*> &b,const int &c );
 void SK_table(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,Potential_spline &Veff0,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo);
@@ -26,7 +26,7 @@ vector <Orbital*> Atom;
 
 double tinf=50;
 double t0=-8;
-double h=0.001;
+double h=0.008;
 
 
 
@@ -36,8 +36,7 @@ Scf scf(t0,tinf,h);
 
 
 scf.initialize(Atom,argv[1]);
-cout<<"ok"<<endl;
-scf.run(Atom,0,1,1,0.3);
+scf.run(Atom,0,1,1,0.2);
 
 //scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
 
@@ -97,43 +96,50 @@ return 0;
 }
 
 
-void create( Orbital_spline **a,Orbital_spline **b,vector<Integrand*> &c,vector<Integrand*> &d,Potential_spline &va,Potential_spline &vb,Potential_spline &vc){
-    if(a[0]!=NULL and b[0]!=NULL){
-    	c[0]=new S_ss(a[0],b[0]);
-    	d[0]=new V_ss(a[0],b[0],va,vb,vc);
+void create( Orbital_spline **a,Orbital_spline **b,vector<Integrand*> &c,vector<Integrand*> &d){
+    double e;
+	if(a[0]!=NULL and b[0]!=NULL){
+    	e=b[0]->energy();
+		c[0]=new S_ss();
+    	d[0]=new V_ss(e);
     }
 
     if(a[0]!=NULL and b[1]!=NULL){
-    	c[1]=new S_sp(a[0],b[1]);
-    	d[1]=new V_sp(a[0],b[1],va,vb,vc);
+    	e=b[1]->energy();
+    	c[1]=new S_sp();
+    	d[1]=new V_sp(e);
     }
 
     if(a[0]!=NULL and b[2]!=NULL){
-    	c[2]=new S_sd(a[0],b[2]);
-    	d[2]=new V_sd(a[0],b[2],va,vb,vc);
+    	e=b[2]->energy();
+    	c[2]=new S_sd();
+    	d[2]=new V_sd(e);
     }
 
     if(a[1]!=NULL and b[1]!=NULL){
-    	c[3]=new S_pp_pi(a[1],b[1]);
-    	d[3]=new V_pp_pi(a[1],b[1],va,vb,vc);
-    	c[4]=new S_pp_sig(a[1],b[1]);
-    	d[4]=new V_pp_sig(a[1],b[1],va,vb,vc);
+    	e=b[1]->energy();
+    	c[3]=new S_pp_pi();
+    	d[3]=new V_pp_pi(e);
+    	c[4]=new S_pp_sig();
+    	d[4]=new V_pp_sig(e);
     }
 
     if(a[1]!=NULL and b[2]!=NULL){
-    	c[5]=new S_pd_pi(a[1],b[2]);
-    	d[5]=new V_pd_pi(a[1],b[2],va,vb,vc);
-    	c[6]=new S_pd_sig(a[1],b[2]);
-    	d[6]=new V_pd_sig(a[1],b[2],va,vb,vc);
+    	e=b[2]->energy();
+    	c[5]=new S_pd_pi();
+    	d[5]=new V_pd_pi(e);
+    	c[6]=new S_pd_sig();
+    	d[6]=new V_pd_sig(e);
     }
 
     if(a[2]!=NULL and b[2]!=NULL){
-    	c[7]=new S_dd_del(a[2],b[2]);
-    	d[7]=new V_dd_del(a[2],b[2],va,vb,vc);
-    	c[8]=new S_dd_pi(a[2],b[2]);
-    	d[8]=new V_dd_pi(a[2],b[2],va,vb,vc);
-    	c[9]=new S_dd_sig(a[2],b[2]);
-    	d[9]=new V_dd_sig(a[2],b[2],va,vb,vc);
+    	e=b[2]->energy();
+    	c[7]=new S_dd_del();
+    	d[7]=new V_dd_del(e);
+    	c[8]=new S_dd_pi();
+    	d[8]=new V_dd_pi(e);
+    	c[9]=new S_dd_sig();
+    	d[9]=new V_dd_sig(e);
     }
 
 
@@ -171,7 +177,7 @@ vector<Integrand*> S(10,NULL);
 vector<Integrand*> V(10,NULL);
 
 double d=0.2;
-create(A,B,S,V,Veff,Veff0,Vconf);
+create(A,B,S,V);
 
 
 gauss g(50,d);
@@ -190,21 +196,26 @@ double overlap[10];
 double H[10];
 double s[10];
 double v[10];
+double econf[10];
 
 for(int i=0;i<10;i++){
 		H[i]=0.00;
 		overlap[i]=0.00;
 		s[i]=0.0;
 		v[i]=0.0;
+		if(V[i]!=NULL){
+			econf[i]=V[i]->energy();
+		}
+		else {econf[i]=0.;}
 }
 
 while(2*d<12){
-	g.integrate2d(0,1,0,pi,S,V,s,v);
+	g.integrate2d(Veff, Vconf,A,B,S,V,s,v);
 
     for(int i=0;i<10;i++){
     	if(V[i]!=NULL){
     		overlap[i]=s[i];
-    		H[i]=V[i]->energy()*overlap[i]+v[i];
+    		H[i]=econf[i]*overlap[i]+v[i];
     	}
 	}
 

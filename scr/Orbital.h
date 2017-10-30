@@ -126,6 +126,7 @@ public:
 	Potential_spline(double *,double *,int N);
 	virtual ~Potential_spline();
 	gsl_spline * spline(){return v;}
+	double operator()(double);
 	gsl_interp_accel * acc(){return accv;};
     double min(){return rmin;};
 };
