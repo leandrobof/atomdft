@@ -20,15 +20,7 @@ void dens_inicial(double *r,double *rho,int N,int Z){
         rho[i]=-1/(3*pi*pi)*pow(-2*v,3/2.);
 	}
 }
-/**
- * @brief Actualiza la densidad y gradiente a partir de la funciones radiales de los nuevos orbitales y la antigua densidad.
- * $$\rho_{new}=(1-\alpha)\rho+\alpha\rho_{old}$$
- * @param rho = array  densidad.
- * @param grad = array  gradiente.
- * @param Atom = vector con Orbitales, de donde se construira la nueva densidad.
- * @param alfa = parametro de damping
- * @param N = Numero de elementos de rho y grad;
- */
+
 
 void new_rho(double *rho, double *grad,vector<Orbital*> &Atom,double alfa,int N){
 	double nrho;

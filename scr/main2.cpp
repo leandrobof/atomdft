@@ -180,7 +180,7 @@ double d=0.2;
 create(A,B,S,V);
 
 
-gauss g(50,d);
+gauss g(300,d);
 
 ofstream salida2(archivo);
 
