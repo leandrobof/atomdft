@@ -14,13 +14,13 @@ using namespace std;
 
 void create( Orbital_spline **a,Orbital_spline **b,vector<Integrand*> &c,vector<Integrand*> &d);
 void borrar(vector<Integrand*> &,vector<Integrand*> &);
-double Hubbard(Scf &a,vector<Orbital*> &b,const int &c );
+//double Hubbard(Scf &a,vector<Orbital*> &b,const int &c );
 void SK_table(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,Potential_spline &Veff0,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo);
 
 int main(int argc,char *argv[]){
 
 
-vector <Orbital*> Atom;
+
 
 
 
@@ -35,8 +35,8 @@ Scf scf(t0,tinf,h);
 
 
 
-scf.initialize(Atom,argv[1]);
-scf.run(Atom,0,1,1,0.2);
+scf.initialize(argv[1]);
+scf.run(0,1,1,0.2);
 
 //scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
 
@@ -44,7 +44,7 @@ double e[3]={0.,0.,0.};
 double ocupation[3]={0.,0.,0.};
 double U[3]={0.,0.,0.};
 
-scf.energy(Atom,e,ocupation);
+scf.energy(e,ocupation);
 
 
 //scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.2);
@@ -64,12 +64,12 @@ for(int i=0;i<N;i++){
 Potential_spline Veff0(veff0,r,N);
 //*****
 
-scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
+scf.run(atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
 
 //*****
 //Array  splines de los orbitales.
 Orbital_spline *C[3]={NULL,NULL,NULL};
-scf.orbital(Atom,C);
+scf.orbital(C);
 
 for(int i=0;i<N;i++){
 	veff2[i]=veff[i]-vconf[i];
@@ -87,9 +87,7 @@ delete C[0];
 delete C[1];
 delete C[2];
 
-for (int i=0;i<Atom.size();i++){
-	delete Atom[i];
-}
+
 
 //*******************
 return 0;
@@ -153,6 +151,8 @@ void borrar(vector<Integrand*> &c,vector<Integrand*> &d){
 		delete d[i];
 	}
 }
+
+/*
 double Hubbard(Scf &a,vector<Orbital*> &b,const int &c ){
 	double h=0.001;
 	double n=b[c]->ocup();
@@ -171,6 +171,7 @@ double Hubbard(Scf &a,vector<Orbital*> &b,const int &c ){
 	a.run(b,0,1,1,0.3);
 	return (ef-eb)/h;
 }
+*/
 
 void SK_table(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,Potential_spline &Veff0,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo){
 vector<Integrand*> S(10,NULL);
@@ -180,7 +181,7 @@ double d=0.2;
 create(A,B,S,V);
 
 
-gauss g(300,d);
+gauss g(50,d);
 
 ofstream salida2(archivo);
 

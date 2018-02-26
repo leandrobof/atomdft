@@ -1,21 +1,7 @@
 Relativistic True
 GGA True
 restart False
-save True
+save False
 74
 6s 6p 5d
-1s  1 1 
-2s  1 1 
-2p  3 3 
-3s  1 1 
-3p  3 3 
-3d  5 5 
-4s  1 1 
-4p  3 3 
-4d  5 5
-5s  1 1
-5p  3 3
-6s  1 1
-4f  7 7 
-5d  4 0  
-6p  0 0 
+1s2 2s2 2p6 3s2 3p6 3d10 4s2 4p6 4d10 5s2 5p6 6s2 4f14 5d4 6p0 

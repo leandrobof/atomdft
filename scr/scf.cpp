@@ -58,7 +58,7 @@ x['f']=3;
 
 }
 
-int Scf::initialize(vector<Orbital*> &Atom,string archivo){
+int Scf::initialize(string archivo){
 	ifstream atomo(archivo);
 
 	string line1;
@@ -259,7 +259,7 @@ else{
 }
 
 if(restart==true){
-	readpot(Atom);
+	readpot();
 }
 };
 
@@ -273,11 +273,15 @@ Scf::~Scf(){
 
     delete [] grad;
     delete vxc;
+    for (int i=0;i<Atom.size();i++){
+    	delete Atom[i];
+    }
+
 }
 
 
 
-void Scf::run(vector<Orbital*> &Atom,double w,double al,double ro,double alf){
+void Scf::run(double w,double al,double ro,double alf){
 	/**************************************************************/
 	alfa=alf;
 	W=w;
@@ -379,14 +383,14 @@ void Scf::run(vector<Orbital*> &Atom,double w,double al,double ro,double alf){
 
 	/******Se libera spline y acc*********************/
     if(save==true){
-    	savepot(Atom);
+    	savepot();
     }
 
 	delete [] e1;
 	delete [] e2;
 
 }
-void Scf::energy(vector<Orbital*> &Atom,double *e,double *ocupation){
+void Scf::energy(double *e,double *ocupation){
     int l;
 	if(Relativistic==false){
 		for(int i=0;i<3;i++){
@@ -420,12 +424,12 @@ void Scf::energy(vector<Orbital*> &Atom,double *e,double *ocupation){
 		}
 	}
 }
-void Scf::orbital(vector<Orbital*> &Atom,Orbital_spline **C){
+void Scf::orbital(Orbital_spline **C){
 	int l;
 	if (Relativistic==true){
 		double e[3];
 		double nocup[3];
-		energy(Atom,e,nocup);
+		energy(e,nocup);
 		for(int i=0;i<3;i++){
 			if(index.count(SK[i])>0){
 				double o[N];
@@ -460,7 +464,7 @@ double* Scf::Veff_noconf(){
 	}*/
 return veff;};
 
-void Scf::readpot(vector<Orbital*> &Atom){
+void Scf::readpot(){
 	double en;
 	ifstream potfile("pot");
 
@@ -477,7 +481,7 @@ void Scf::readpot(vector<Orbital*> &Atom){
     potfile.close();
 }
 
-void Scf::savepot(vector<Orbital*> &Atom){
+void Scf::savepot(){
 	ofstream pot_file("pot");
 	for (int i=0;i<Atom.size();i++){
 			pot_file<<Atom[i]->energy()<<endl;

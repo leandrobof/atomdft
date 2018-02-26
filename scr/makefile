@@ -30,4 +30,4 @@ Poisson.o: Poisson.cpp Poisson.h
 
 clean:
 	rm -rf *.o
-	rm scf
+	rm atomdft

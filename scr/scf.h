@@ -57,6 +57,7 @@ private:
     Xc *vxc;
     std::map<char,int> x;
     std::map<string,int> index;
+    vector <Orbital*> Atom;
 public:
 	/**
 	 * Constructor
@@ -76,7 +77,7 @@ public:
      * @return
      */
 
-    int initialize(vector<Orbital*> &Atom,string archivo);
+    int initialize(string archivo);
 
     /**
      * Realiza calculo de orbitales de forma autoconsistente para un determinado potencial de confinamiento de Woods-Saxon.
@@ -89,7 +90,7 @@ public:
      * @param r0   parametro de confinamiento.
      * @param alf  damping.
      */
-    void run(vector<Orbital*> &Atom,double W,double a,double r0,double alf);
+    void run(double W,double a,double r0,double alf);
     int z(){return Z;};
     int Nt(){return N;}
     /**
@@ -100,7 +101,7 @@ public:
      * @param e    array donde se guardan  los autovalores.
      * @param nocup
      */
-    void energy(vector<Orbital*> &Atom,double *e,double *nocup);
+    void energy(double *e,double *nocup);
 
     /**
          * Obtiene array de Orbitales_splines.En el caso Relativista devuelve un orbital promediado
@@ -110,7 +111,7 @@ public:
          * @param orb array donde se guardaran los splines de los orbitales
          */
 
-    void orbital(vector<Orbital*> &Atom,Orbital_spline **orb);
+    void orbital(Orbital_spline **orb);
     /**
      *
      * @return puntero a grilla t.
@@ -134,13 +135,13 @@ public:
      * Lee archivo con autovalores y veff.
      * @param Atom
      */
-    void readpot(vector<Orbital*> &Atom);
+    void readpot();
 
     /**
      * Guarda archivo con autovalores  e y veff.
      * @param Atom
      */
-    void savepot(vector<Orbital*> &Atom);
+    void savepot();
 };
 
 
