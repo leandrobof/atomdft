@@ -2,8 +2,5 @@
 
 To do:
 
-*adaptar tablas SK para el caso relativista.
-
-*Hubbard U.
-
-*Punteros inteligentes.
+Sk tablas como clase.
+Extender al caso Heteronuclear.
