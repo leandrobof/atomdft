@@ -13,7 +13,9 @@
 #include <cstddef>
 #include <vector>
 
+
 using namespace std;
+
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 typedef vector< double > state_type;

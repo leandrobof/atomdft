@@ -1,8 +1,11 @@
-all: main2.o Orbital.o Func.o xc_potential.o hartree.o Poisson.o Integrand.o gauss.o scf.o
-	g++ main2.o scf.o Orbital.o Func.o xc_potential.o hartree.o Poisson.o Integrand.o gauss.o -pg  -o   atomdft -L/opt/etsf/lib -lgsl -lopenblas -lm -lxc -std=c++11
+all: main2.o Orbital.o Func.o xc_potential.o hartree.o Poisson.o Integrand.o gauss.o scf.o SKtable.o
+	g++ main2.o scf.o Orbital.o Func.o xc_potential.o hartree.o Poisson.o Integrand.o gauss.o SKtable.o -pg  -o   atomdft -L/opt/etsf/lib -lgsl -lopenblas -lm -lxc -std=c++11
 
 main2.o: main2.cpp Orbital.h
 	g++  main2.cpp -c -I. -I/opt/etsf/include -std=c++11
+
+SKtable.o: SKtable.cpp SKtable.h
+        g++  SKtable.cpp -c -I. -std=c++11
 
 gauss.o:gauss.cpp gauss.h
 	g++ gauss.cpp -c -I. -std=c++11
