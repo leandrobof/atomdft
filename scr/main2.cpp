@@ -45,19 +45,11 @@ scf.energy(e,ocupation);
 
 //scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.2);
 
-int N=scf.Nt();
-double *r=scf.rgrid();
-double *veff=scf.Veff_noconf();
-double *vconf=scf.Vconf();
-double veff0[N];
-double veff2[N];
 
 //potencial de referencia V0
-for(int i=0;i<N;i++){
-	veff0[i]=veff[i]-vconf[i];
-}
 
-Potential_spline Veff0(veff0,r,N);
+
+
 //*****
 
 scf.run(atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
@@ -67,12 +59,12 @@ scf.run(atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
 Orbital_spline *C[3]={NULL,NULL,NULL};
 scf.orbital(C);
 
-for(int i=0;i<N;i++){
-	veff2[i]=veff[i]-vconf[i];
-}
 
-Potential_spline Veff(veff2,r,N);
-Potential_spline Vconf(vconf,r,N);
+Potential_spline Veff;
+Potential_spline vconf;
+
+scf.Vconf(vconf);
+scf.Veff_noconf(Veff);
 
 string simbolo(argv[1]);
 
@@ -80,7 +72,7 @@ SKtable sk;
 
 sk.create(C,C);
 
-sk.run(C,C,Veff,Veff0,Vconf,e,U,ocupation,simbolo+"-"+simbolo+".skf");
+sk.run(C,C,Veff,vconf,e,U,ocupation,simbolo+"-"+simbolo+".skf");
 
 for(int i=0;i<3;i++){
     delete C[i];

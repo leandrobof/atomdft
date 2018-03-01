@@ -601,16 +601,24 @@ Orbital_spline::~Orbital_spline(){
  double Orbital_spline::operator()(double x){
 	return gsl_spline_eval(R,x,accR);
 }
+
+Potential_spline::Potential_spline(){};
 Potential_spline::Potential_spline(double *y,double *x,int N){
 	v=gsl_spline_alloc (gsl_interp_cspline, N);
 	accv=gsl_interp_accel_alloc ();
 	gsl_spline_init (v, x, y,N);
     rmin=x[0];
 }
-
+void Potential_spline::init(double *y,double *x,int N){
+	v=gsl_spline_alloc (gsl_interp_cspline, N);
+	accv=gsl_interp_accel_alloc ();
+	gsl_spline_init (v, x, y,N);
+	rmin=x[0];
+};
 Potential_spline::~Potential_spline(){
 	gsl_spline_free (v);
 	gsl_interp_accel_free (accv);
+
 }
 
 double Potential_spline::operator()(double x){

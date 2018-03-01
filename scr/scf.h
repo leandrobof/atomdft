@@ -129,8 +129,8 @@ public:
      */
 
 
-    double* Vconf(){return vconf;};
-    double* Veff_noconf();
+    void Vconf(Potential_spline &);
+    void Veff_noconf(Potential_spline &);
     /**
      * Lee archivo con autovalores y veff.
      * @param Atom

@@ -458,11 +458,16 @@ void Scf::orbital(Orbital_spline **C){
 	}
 }
 
-double* Scf::Veff_noconf(){
-	/*for(int i=0;i<N;i++){
-		veff[i]=veff[i]-vconf[i];
-	}*/
-return veff;};
+void Scf::Vconf(Potential_spline &vc){
+	vc.init(vconf,r,N);
+}
+void Scf::Veff_noconf(Potential_spline &vefnc){
+	double v[N];
+	for(int i=0;i<N;i++){
+		v[i]=veff[i]-vconf[i];
+	}
+	vefnc.init(v,r,N);
+};
 
 void Scf::readpot(){
 	double en;

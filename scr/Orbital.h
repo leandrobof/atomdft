@@ -123,7 +123,9 @@ private:
 	gsl_interp_accel *accv;
 	double rmin;
 public:
+	Potential_spline();
 	Potential_spline(double *,double *,int N);
+	void init(double *,double *,int N);
 	virtual ~Potential_spline();
 	gsl_spline * spline(){return v;}
 	double operator()(double);
