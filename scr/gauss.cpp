@@ -33,7 +33,8 @@ void gauss::integrate2d(Potential_spline &veff,Potential_spline &vconf,Orbital_s
      double w2[n];
      double cosh_u;
      double cos_v;
-     double rmin=veff.min();
+     double rmin1=veff.min();
+     double rmin2=vconf.min();
      double r1max=A[0]->max();
      double r2max=B[0]->max();
 
@@ -58,25 +59,38 @@ void gauss::integrate2d(Potential_spline &veff,Potential_spline &vconf,Orbital_s
              cos2=(z-a)/r2;
     		 dV=r*(c1/(1-x1[j]*x1[j]))*(1+2*c2*cos(2*x2[k]));                //r=a*sinh(u)*sin(v);
 
-    		 if(r1>r1max or r2>r2max or r1<rmin or r2<rmin){
+    		 if(r1>r1max  or r1<rmin1 ) {
     			 veff1=0;
-    			 vconf2=0;
-
     		 }
     		 else{
     			 veff1=veff(r1);
+    		 }
+
+    		 if(r2>r2max or r2<rmin2){
+    			 vconf2=0;
+    		 }
+    		 else {
     			 vconf2=vconf(r2);
     		 }
+
+
+
     		 for(int i=0;i<3;i++){
     			 if(r1>r1max or r2>r2max){
     				 R1[i]=0;
     				 R2[i]=0;
     			 }
     			 else{
-    				 R1[i]=(*A[i])(r1);
-    				 R2[i]=(*B[i])(r2);
+    				 if(A[i]!=NULL ){
+    					 R1[i]=(*A[i])(r1);
+    				 }
+    				 if(B[i]!=NULL ){
+    					 R2[i]=(*B[i])(r2);
+    				 }
+
     			 }
     		 }
+
     		 for(int l=0;l<S.size();l++){
     			 if(S[l]!=NULL and V[l]!=NULL){
     				 s[l]=s[l]+w1[j]*w2[k]* S[l]->calculate(R1,R2,veff1,vconf2,sin1,sin2,cos1,cos2)*dV;

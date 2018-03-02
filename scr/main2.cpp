@@ -18,7 +18,9 @@ using namespace std;
 
 int main(int argc,char *argv[]){
 
-
+double e[3]={0.,0.,0.};
+double ocupation[3]={0.,0.,0.};
+double U[3]={0.,0.,0.};
 
 double tinf=50;
 double t0=-8;
@@ -27,21 +29,22 @@ double h=0.008;
 
 
 
-Scf scf(t0,tinf,h);
+Scf atomo1(t0,tinf,h);
+Scf atomo2(t0,tinf,h);
 
 
+atomo1.initialize(argv[1]);
+atomo1.run(0,1,1,0.2);
 
-scf.initialize(argv[1]);
-scf.run(0,1,1,0.2);
+atomo2.initialize(argv[2]);
+atomo2.run(0,1,1,0.2);
 
 //scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
 
-double e[3]={0.,0.,0.};
-double ocupation[3]={0.,0.,0.};
-double U[3]={0.,0.,0.};
 
-scf.energy(e,ocupation);
 
+atomo1.energy(e,ocupation);
+atomo2.energy(e,ocupation);
 
 //scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.2);
 
@@ -52,30 +55,51 @@ scf.energy(e,ocupation);
 
 //*****
 
-scf.run(atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
+atomo1.run(atof(argv[3]),atof(argv[4]),atof(argv[5]),0.4);
+atomo2.run(atof(argv[6]),atof(argv[7]),atof(argv[8]),0.4);
 
 //******
 //Array  splines de los orbitales.
-Orbital_spline *C[3]={NULL,NULL,NULL};
-scf.orbital(C);
+Orbital_spline *A[3]={NULL,NULL,NULL};
+Orbital_spline *B[3]={NULL,NULL,NULL};
+
+atomo1.orbital(A);
+atomo2.orbital(B);
+
+Potential_spline Veff_A;
+Potential_spline vconf_A;
+
+Potential_spline Veff_B;
+Potential_spline vconf_B;
+
+atomo1.Vconf(vconf_A);
+atomo1.Veff_noconf(Veff_A);
+
+atomo2.Vconf(vconf_B);
+atomo2.Veff_noconf(Veff_B);
 
 
-Potential_spline Veff;
-Potential_spline vconf;
+string simboloA(argv[1]);
+string simboloB(argv[2]);
 
-scf.Vconf(vconf);
-scf.Veff_noconf(Veff);
+SKtable skaa;
+SKtable skab;
+SKtable skba;
+SKtable skbb;
 
-string simbolo(argv[1]);
+skab.create(A,A);
+skab.create(A,B);
+skba.create(B,A);
+skab.create(B,B);
 
-SKtable sk;
-
-sk.create(C,C);
-
-sk.run(C,C,Veff,vconf,e,U,ocupation,simbolo+"-"+simbolo+".skf");
+skab.run(A,A,Veff_A,vconf_A,e,U,ocupation,simboloA+"-"+simboloA+"2.skf");
+skab.run(A,B,Veff_A,vconf_B,e,U,ocupation,simboloA+"-"+simboloB+"2.skf");
+skba.run(B,A,Veff_B,vconf_A,e,U,ocupation,simboloB+"-"+simboloA+"2.skf");
+skab.run(B,B,Veff_B,vconf_B,e,U,ocupation,simboloB+"-"+simboloB+"2.skf");
 
 for(int i=0;i<3;i++){
-    delete C[i];
+    delete A[i];
+    delete B[i];
 }
 
 
