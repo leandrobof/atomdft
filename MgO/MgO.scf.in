@@ -1,0 +1,48 @@
+&CONTROL
+                       title = 'MgO'
+                 calculation = 'scf'
+                restart_mode = 'from_scratch'
+                      outdir = './tmp/'
+                  pseudo_dir = '/opt/espresso-5.3.0/pseudo/US_v1.5/'
+                      prefix = 'MgO'
+                   verbosity = 'default'
+               
+                     
+                    
+ /
+ &SYSTEM
+                       ibrav = 0
+                         nat = 2
+                        ntyp = 2
+                     ecutwfc = 60
+                     ecutrho = 480
+
+ /
+ &ELECTRONS
+            electron_maxstep = 200
+                    conv_thr = 1.0D-7
+              diago_thr_init = 1e-4
+                 mixing_mode = 'plain'
+                 mixing_beta = 0.5
+                 mixing_ndim = 8
+             diagonalization = 'david'
+ /
+
+
+ATOMIC_SPECIES
+   Mg   24.3050000000  mg_pbe_v1.4.uspp.F.UPF
+    O   15.9994000000  o_pbe_v1.2.uspp.F.UPF
+
+ATOMIC_POSITIONS angstrom
+Mg       0.0000000000     0.0000000000     0.0000000000
+O        2.1060699907     0.0000000000     0.0000000000
+
+K_POINTS automatic
+9  9  9   0 0 0
+
+CELL_PARAMETERS angstrom
+    0.0000000000     2.1060699907     2.1060699907
+    2.1060699907     0.0000000000     2.1060699907
+    2.1060699907     2.1060699907     0.0000000000
+
+
