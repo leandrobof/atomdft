@@ -18,9 +18,12 @@ using namespace std;
 
 int main(int argc,char *argv[]){
 
-double e[3]={0.,0.,0.};
-double ocupation[3]={0.,0.,0.};
-double U[3]={0.,0.,0.};
+double eA[3]={0.,0.,0.};
+double eB[3]={0.,0.,0.};
+double ocupationA[3]={0.,0.,0.};
+double ocupationB[3]={0.,0.,0.};
+double UA[3]={0.4954, 0.4954, 0.4954};
+double UB[3]={0.2246,0.2246, 0.2246};
 
 double tinf=50;
 double t0=-8;
@@ -43,8 +46,8 @@ atomo2.run(0,1,1,0.2);
 
 
 
-atomo1.energy(e,ocupation);
-atomo2.energy(e,ocupation);
+atomo1.energy(eA,ocupationA);
+atomo2.energy(eB,ocupationB);
 
 //scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.2);
 
@@ -58,10 +61,19 @@ atomo2.energy(e,ocupation);
 atomo1.run(atof(argv[3]),atof(argv[4]),atof(argv[5]),0.4);
 atomo2.run(atof(argv[6]),atof(argv[7]),atof(argv[8]),0.4);
 
+Potential_spline Veff0_A;
+Potential_spline Veff0_B;
+
+atomo1.Veff_noconf(Veff0_A);
+atomo2.Veff_noconf(Veff0_B);
+
 //******
 //Array  splines de los orbitales.
 Orbital_spline *A[3]={NULL,NULL,NULL};
 Orbital_spline *B[3]={NULL,NULL,NULL};
+
+atomo1.run(atof(argv[9]),atof(argv[10]),atof(argv[11]),0.4);
+atomo2.run(atof(argv[12]),atof(argv[13]),atof(argv[14]),0.4);
 
 atomo1.orbital(A);
 atomo2.orbital(B);
@@ -92,10 +104,10 @@ skab.create(A,B);
 skba.create(B,A);
 skab.create(B,B);
 
-skab.run(A,A,Veff_A,vconf_A,e,U,ocupation,simboloA+"-"+simboloA+"2.skf");
-skab.run(A,B,Veff_A,vconf_B,e,U,ocupation,simboloA+"-"+simboloB+"2.skf");
-skba.run(B,A,Veff_B,vconf_A,e,U,ocupation,simboloB+"-"+simboloA+"2.skf");
-skab.run(B,B,Veff_B,vconf_B,e,U,ocupation,simboloB+"-"+simboloB+"2.skf");
+skab.run(A,A,Veff_A,Veff0_A,Veff_A,vconf_A,eA,UA,ocupationA,simboloA+"-"+simboloA+"2.skf");
+skab.run(A,B,Veff_A,Veff0_B,Veff_B,vconf_B,eB,UB,ocupationB,simboloA+"-"+simboloB+"2.skf");
+skba.run(B,A,Veff_B,Veff0_A,Veff_A,vconf_A,eB,UB,ocupationB,simboloB+"-"+simboloA+"2.skf");
+skab.run(B,B,Veff_B,Veff0_B,Veff_B,vconf_B,eB,UB,ocupationB,simboloB+"-"+simboloB+"2.skf");
 
 for(int i=0;i<3;i++){
     delete A[i];

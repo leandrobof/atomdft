@@ -28,7 +28,7 @@ public:
     void set_rmax(double);
     void set_rmin(double);
     void set_step(double);
-    void run(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo);
+    void run(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,Potential_spline &Veff0b,Potential_spline &Veffb,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo);
 };
 
 #endif /* SKTABLE_H_ */

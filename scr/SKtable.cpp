@@ -76,7 +76,7 @@ void SKtable::create( Orbital_spline **a,Orbital_spline **b){
 
 };
 
-void SKtable::run(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo){
+void SKtable::run(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veffa,Potential_spline &Veff0b,Potential_spline &Veffb,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo){
 	double d=rmin/2;
 
 	gauss g(ngrid,d);
@@ -111,7 +111,7 @@ void SKtable::run(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,P
 	}
 
 	while(2*d<rmax){
-		g.integrate2d(Veff, Vconf,A,B,S,V,s,v);
+		g.integrate2d(Veffa,Veffb, Vconf,Veff0b,A,B,S,V,s,v);
 
 	    for(int i=0;i<10;i++){
 	    	if(V[i]!=NULL){

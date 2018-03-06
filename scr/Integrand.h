@@ -22,7 +22,7 @@ protected:
 public:
 	Integrand();
 	virtual ~Integrand();
-	virtual double calculate(double *R1,double *R2,double ,double,double &sin1,double &sin2,double &cos1,double &cos2) = 0;
+	virtual double calculate(double *R1,double *R2,double ,double,double,double &sin1,double &sin2,double &cos1,double &cos2) = 0;
     virtual double energy(){return 0;};
 };
 /*
@@ -64,7 +64,7 @@ protected:
 public:
     S();
     inline virtual double f(double sin1,double sin2,double cos1,double cos2){return 1;}
-    virtual double calculate(double *R1,double *R2,double v1,double vconf,double &sin1,double &sin2,double &cos1,double &cos2);
+    virtual double calculate(double *R1,double *R2,double v1,double Db,double vconf,double &sin1,double &sin2,double &cos1,double &cos2);
 };
 class S_ss : public S{
 public:
@@ -124,7 +124,7 @@ private:
 public:
 	V(double en)  ;
 	inline virtual double f(double sin1,double sin2,double cos1,double cos2){return 1;}
-	virtual double calculate(double *R1,double *R2,double v1,double vconf,double &sin1,double &sin2,double &cos1,double &cos2);
+	virtual double calculate(double *R1,double *R2,double v1,double Db,double vconf,double &sin1,double &sin2,double &cos1,double &cos2);
     virtual double energy(){return e;}
 };
 
