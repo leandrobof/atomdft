@@ -93,7 +93,7 @@ S::S() : Integrand(){
 
 }
 
-double S::calculate(double *R1,double *R2,double v1,double vconf,double &sin1,double &sin2,double &cos1,double &cos2){
+double S::calculate(double *R1,double *R2,double v1,double DVb,double vconf,double &sin1,double &sin2,double &cos1,double &cos2){
 
 
 
@@ -119,10 +119,10 @@ V::V(double ener) : S(){
 
 };
 //Mejorar la evaluacion de integrales.Las casos menores a rmin no se evaluan actualmente.
-double V::calculate(double *R1,double *R2,double v1,double vconf,double &sin1,double &sin2,double &cos1,double &cos2){
+double V::calculate(double *R1,double *R2,double v1,double DVb,double vconf,double &sin1,double &sin2,double &cos1,double &cos2){
 
 
-	return  R1[l1]*R2[l2]*(v1-vconf)*f(sin1,sin2,cos1,cos2);
+	return  R1[l1]*R2[l2]*(v1+DVb-vconf)*f(sin1,sin2,cos1,cos2);
 
 };
 V_ss::V_ss(double en) : V(en){l1=0;l2=0;};

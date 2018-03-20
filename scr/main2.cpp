@@ -9,6 +9,7 @@
 #include "gauss.h"
 #include "SKtable.h"
 #include "scf.h"
+#include <sstream>
 
 using namespace std;
 
@@ -18,91 +19,117 @@ using namespace std;
 
 int main(int argc,char *argv[]){
 
-double e[3]={0.,0.,0.};
-double ocupation[3]={0.,0.,0.};
-double U[3]={0.,0.,0.};
 
-double tinf=50;
-double t0=-8;
-double h=0.008;
+vector<string> simbolo;
+vector<double*> e;
+vector<double*> ocupation;
+vector<double*> U;
 
+vector<Potential_spline*> Veff0;
+vector<Potential_spline*> Veff;
+vector<Potential_spline*> vconf;
 
+vector<Orbital_spline **> A;
 
-
-Scf atomo1(t0,tinf,h);
-Scf atomo2(t0,tinf,h);
-
-
-atomo1.initialize(argv[1]);
-atomo1.run(0,1,1,0.2);
-
-atomo2.initialize(argv[2]);
-atomo2.run(0,1,1,0.2);
-
-//scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.4);
+vector<Scf*> Atoms;
 
 
+ifstream file(argv[1]);
+string line;
+int i=0;
 
-atomo1.energy(e,ocupation);
-atomo2.energy(e,ocupation);
+while(getline(file,line)){
+	double param_dens[3]={0,0,0};
+	double param_basis[3]={0,0,0};
 
-//scf.run(Atom,atof(argv[2]),atof(argv[3]),atof(argv[4]),0.2);
+//***Lee  Atomo el archivo, y los parametros de confinamiento
 
+	string s=line.substr(line.find_first_not_of(" "));
+	string archivo=s.substr(0,s.find(" "));
+	simbolo.push_back(archivo);
 
-//potencial de referencia V0
-
-
-
-//*****
-
-atomo1.run(atof(argv[3]),atof(argv[4]),atof(argv[5]),0.4);
-atomo2.run(atof(argv[6]),atof(argv[7]),atof(argv[8]),0.4);
-
-//******
-//Array  splines de los orbitales.
-Orbital_spline *A[3]={NULL,NULL,NULL};
-Orbital_spline *B[3]={NULL,NULL,NULL};
-
-atomo1.orbital(A);
-atomo2.orbital(B);
-
-Potential_spline Veff_A;
-Potential_spline vconf_A;
-
-Potential_spline Veff_B;
-Potential_spline vconf_B;
-
-atomo1.Vconf(vconf_A);
-atomo1.Veff_noconf(Veff_A);
-
-atomo2.Vconf(vconf_B);
-atomo2.Veff_noconf(Veff_B);
+	if(line.find("basis")!=-1){
+		string basis=line.substr(line.find("basis"));
+		basis=basis.substr(basis.find("{")+1,basis.find("}")-basis.find("{")-1);
+		istringstream b(basis);
+		b>>param_basis[0]>>param_basis[1]>>param_basis[2];
 
 
-string simboloA(argv[1]);
-string simboloB(argv[2]);
+	}
 
-SKtable skaa;
-SKtable skab;
-SKtable skba;
-SKtable skbb;
 
-skab.create(A,A);
-skab.create(A,B);
-skba.create(B,A);
-skab.create(B,B);
+	for (int j=0;j<3;j++){
+		param_dens[j]=param_basis[j];
+	}
 
-skab.run(A,A,Veff_A,vconf_A,e,U,ocupation,simboloA+"-"+simboloA+"2.skf");
-skab.run(A,B,Veff_A,vconf_B,e,U,ocupation,simboloA+"-"+simboloB+"2.skf");
-skba.run(B,A,Veff_B,vconf_A,e,U,ocupation,simboloB+"-"+simboloA+"2.skf");
-skab.run(B,B,Veff_B,vconf_B,e,U,ocupation,simboloB+"-"+simboloB+"2.skf");
+	if(line.find("dens")!=-1){
+		string dens=line.substr(line.find("dens"));
+		dens=dens.substr(dens.find("{")+1,dens.find("}")-dens.find("{")-1);
+		istringstream d(dens);
+		d>>param_dens[0]>>param_dens[1]>>param_dens[2];
+	}
 
-for(int i=0;i<3;i++){
-    delete A[i];
-    delete B[i];
+//********************************************
+
+	A.push_back(new Orbital_spline* [3] {});
+	e.push_back(new double[3]);
+	ocupation.push_back(new double[3]);
+	U.push_back(new double[3]);
+	Veff0.push_back(new Potential_spline);
+	Veff.push_back(new Potential_spline);
+	vconf.push_back(new Potential_spline);
+	Atoms.push_back(new Scf);
+// Inicializa y corre atomo sin confinamiento.
+	Atoms[i]->initialize(simbolo[i]);
+    Atoms[i]->run(0,1,1,0.2);
+    Atoms[i]->energy(e[i],ocupation[i]);
+// Corre  confinamiento densidad y obtienen pot.
+    Atoms[i]->run(param_dens[0],param_dens[1],param_dens[2],0.2);
+    Atoms[i]->Veff_noconf(*(Veff0[i]));
+// Corre confinamientos bases y obtiene bases y potenciales.
+    Atoms[i]->run(param_basis[0],param_basis[1],param_basis[2],0.2);
+	Atoms[i]->orbital(A[i]);
+	Atoms[i]->Vconf(*(vconf[i]));
+	Atoms[i]->Veff_noconf(*(Veff[i]));
+
+	i++;
 }
 
 
+for (int i=0;i<Atoms.size();i++){
+	for (int j=0;j<Atoms.size();j++){
+		SKtable sk;
+		if (i !=j){
+			sk.create(A[i],A[j],false);
+		}
+		else {
+			sk.create(A[i],A[j],true);
+		};
+
+		sk.run(A[i],A[j],*(Veff0[i]),*(Veff0[j]),*(Veff[j]),*(vconf[j]),e[i],U[i],ocupation[i],simbolo[i]+"-"+simbolo[j]+".skf");
+
+		cout<<simbolo[i]+"-"+simbolo[j]+".skf"<<endl;
+	}
+}
+
+
+for(int k=0;k<Atoms.size();k++){
+	for(int i=0;i<3;i++){
+		delete A[k][i];
+	}
+}
+
+for (int i=0;i<Atoms.size();i++){
+	delete Atoms[i];
+    delete Veff[i];
+    delete vconf[i];
+    delete Veff0[i];
+    delete [] e[i];
+    delete [] ocupation[i];
+    delete [] U[i];
+
+}
+file.close();
 
 //*******************
 return 0;

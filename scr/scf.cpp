@@ -37,11 +37,11 @@ void new_rho(double *rho, double *grad,vector<Orbital*> &Atom,double alfa,int N)
 
 	}
 };
-Scf::Scf(double tmin,double tmax,double step){
+Scf::Scf(){
 Z=0;
-h=step;
-max=tmax;
-min=tmin;
+h=0.008;
+max=50;
+min=-8;
 alfa=0.3;
 W=0;
 a=1;
@@ -60,7 +60,7 @@ x['f']=3;
 
 int Scf::initialize(string archivo){
 	ifstream atomo(archivo);
-
+    prefix=archivo;
 	string line1;
 	string line2;
     string line3;
@@ -471,7 +471,7 @@ void Scf::Veff_noconf(Potential_spline &vefnc){
 
 void Scf::readpot(){
 	double en;
-	ifstream potfile("pot");
+	ifstream potfile(prefix+".pot");
 
 	for (int i=0;i<Atom.size();i++){
 		    potfile>>en;
@@ -487,7 +487,7 @@ void Scf::readpot(){
 }
 
 void Scf::savepot(){
-	ofstream pot_file("pot");
+	ofstream pot_file(prefix+".pot");
 	for (int i=0;i<Atom.size();i++){
 			pot_file<<Atom[i]->energy()<<endl;
 		}

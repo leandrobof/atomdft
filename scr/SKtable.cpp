@@ -16,6 +16,7 @@ SKtable::SKtable() {
 	ngrid=50;
 	S=vector<Integrand*>(10,NULL);
 	V=vector<Integrand*>(10,NULL);
+	homonuclear=true;
 }
 
 SKtable::~SKtable() {
@@ -27,8 +28,9 @@ for(int i=0;i<S.size();i++){
 		}
 }
 
-void SKtable::create( Orbital_spline **a,Orbital_spline **b){
+void SKtable::create( Orbital_spline **a,Orbital_spline **b,bool type){
     double e;
+    homonuclear=type;
 	if(a[0]!=NULL and b[0]!=NULL){
     	e=b[0]->energy();
 		S[0]=new S_ss();
@@ -76,7 +78,7 @@ void SKtable::create( Orbital_spline **a,Orbital_spline **b){
 
 };
 
-void SKtable::run(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo){
+void SKtable::run( Orbital_spline **A, Orbital_spline **B,Potential_spline &Veffa,Potential_spline &Veff0b,Potential_spline &Veffb,Potential_spline &Vconf,double *e,double *U,double *ocupation,string archivo){
 	double d=rmin/2;
 
 	gauss g(ngrid,d);
@@ -84,7 +86,10 @@ void SKtable::run(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,P
 	ofstream salida2(archivo.c_str());
 
 	salida2<<step<<" "<<int((rmax-step)/step)<<endl;
-	salida2<<e[2]<<" "<<e[1]<<"  "<<e[0]<<" 0.0  "<<U[2]<<"  "<<U[1]<<"  "<<U[0]<<"  "<<ocupation[2]<<"  "<<ocupation[1]<<"  "<<ocupation[0]<<endl;
+
+	if(homonuclear==true){
+		salida2<<e[2]<<" "<<e[1]<<"  "<<e[0]<<" 0.0  "<<"Udd"<<"  "<<"Upp"<<"  "<<"Uss"<<"  "<<ocupation[2]<<"  "<<ocupation[1]<<"  "<<ocupation[0]<<endl;
+	}
 	salida2<<"12.01, 19*0.0"<<endl;
 
 	int j=0;
@@ -111,7 +116,7 @@ void SKtable::run(Orbital_spline **A,Orbital_spline **B,Potential_spline &Veff,P
 	}
 
 	while(2*d<rmax){
-		g.integrate2d(Veff, Vconf,A,B,S,V,s,v);
+		g.integrate2d(Veffa,Veffb, Vconf,Veff0b,A,B,S,V,s,v);
 
 	    for(int i=0;i<10;i++){
 	    	if(V[i]!=NULL){

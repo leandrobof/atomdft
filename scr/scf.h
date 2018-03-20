@@ -54,6 +54,7 @@ private:
     bool save;
     ocupation ocup_type;
     string SK[3];
+    string prefix;
     Xc *vxc;
     std::map<char,int> x;
     std::map<string,int> index;
@@ -67,7 +68,7 @@ public:
 	 * @param tmax valor maximo de grilla radial t
 	 * @param step longitud del paso .
 	 */
-    Scf(double tmin,double tmax,double step);
+    Scf();
     ~Scf();
     /**
      * Lee archivo y obtiene Z, la configuracion electronica, tipo de calculo:Relativista no relativista,
