@@ -14,7 +14,7 @@ Integrand.o:Integrand.cpp Integrand.h
 	g++ Integrand.cpp -c -I. -std=c++11
 
 scf.o:scf.cpp scf.h
-	g++ scf.cpp -c -I/opt/etsf/include -std=c++11 
+	g++ scf.cpp -c -I/opt/etsf/include -I/opt/boost_1_62_0/ -std=c++11 
 
 Orbital.o: Orbital.cpp Orbital.h 
 	g++  Orbital.cpp -c -O3 -I.  -std=c++11

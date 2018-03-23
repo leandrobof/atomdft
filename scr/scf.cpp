@@ -6,6 +6,8 @@
  */
 #include "scf.h"
 
+using namespace boost;
+
 void dens_inicial(double *r,double *rho,int N,int Z){
 	double x;
 	double a=0.7280642371;
@@ -37,11 +39,11 @@ void new_rho(double *rho, double *grad,vector<Orbital*> &Atom,double alfa,int N)
 
 	}
 };
-Scf::Scf(double tmin,double tmax,double step){
+Scf::Scf(){
 Z=0;
-h=step;
-max=tmax;
-min=tmin;
+h=0.008;
+max=50;
+min=-8;
 alfa=0.3;
 W=0;
 a=1;
@@ -60,18 +62,84 @@ x['f']=3;
 
 int Scf::initialize(string archivo){
 	ifstream atomo(archivo);
+    vector<string> param;
+	vector<string> config;
+    char* str;
+    prefix=archivo;
+	string line;
 
-	string line1;
-	string line2;
-    string line3;
-	string line4;
-	getline(atomo,line1);
-	getline(atomo,line2);
-	getline(atomo,line3);
-	getline(atomo,line4);
-	atomo>>Z;
-	atomo>>SK[0];atomo>>SK[1];atomo>>SK[2];
-	atomo.ignore(256, '\n');
+
+    	map<string,int> options;
+    	options["Relativistic"]=1;
+    	options["GGA"]=2;
+    	options["restart"]=3;
+    	options["restart"]=4;
+    	options["z"]=5;
+    	options["sk_orb"]=6;
+
+
+
+
+
+    	char_separator<char> sep("=, '");
+    	while(getline(atomo,line)){
+    		if(line.find("config")!=-1){
+    			string subline=line.substr(line.find("="));
+    			tokenizer<char_separator<char> > tokens(subline, sep);
+    		    for(tokenizer<char_separator<char> >::iterator beg=tokens.begin(); beg!=tokens.end();++beg){
+    		    	config.push_back(*beg) ;
+    		    }
+    		}
+    		else{
+    			tokenizer<char_separator<char> > tokens(line, sep);
+    			for(tokenizer<char_separator<char> >::iterator beg=tokens.begin(); beg!=tokens.end();++beg){
+    		    		  param.push_back(*beg) ;
+    			}
+    		}
+    	}
+
+    	atomo.close();
+
+    for(int i=0;i<param.size();i++){
+    	switch(options[param[i]]){
+
+    	case 1:if(param[i+1]=="True"){
+    			Relativistic=true;
+    		}
+    		break;
+
+    	case 2:	if(param[i+1]=="True"){
+    			gga=true;
+    		}
+    		break;
+
+    	case 3:
+    		if(param[i+1]=="True"){
+    			restart=true;
+    		}
+    		break;
+
+    	case 4:if(param[i+1]=="True"){
+    		save=true;
+    	};break;
+
+    	case 5:Z=atoi(param[i+1].c_str());break;
+
+    	case 6:
+    		for (int j=0;j<3;j++){
+    			SK[j]=param[i+1+j];
+
+    		};
+    		break;
+
+
+    	default:break;
+    	}
+    }
+
+
+
+
 	N=(log(Z*max)-min)/h;
 	t=new double [N];
 	r=new double [N];
@@ -93,71 +161,6 @@ int Scf::initialize(string archivo){
 
 
 
-
-	if(line1.find("Relativistic")==-1){
-		cout<<"Keyword \"Relativistic\" not found\n"<<endl;
-	return 1;
-	}
-	else{
-		string str2=line1.substr(line1.find("Relativistic")+12);
-		string str3=str2.substr(str2.find_first_not_of(" "),str2.find_last_not_of(" "));
-		if(str3=="True"){
-			Relativistic=true;
-		}
-		else if(str3=="False"){
-			Relativistic=false;
-		}else {cout<<"\"Relativistic\" has only values \"True\" or \"False\"\n"<<endl;
-		return 1;}
-	}
-
-	if(line2.find("GGA")==-1){
-		cout<<"Keyword \"GGA\" not found\n"<<endl;
-	return 1;
-	}
-	else{
-		string str2=line2.substr(line2.find("GGA")+3);
-		string str3=str2.substr(str2.find_first_not_of(" "),str2.find_last_not_of(" "));
-		if(str3=="True" ){
-			gga=true;
-		}
-		else if(str3=="False"){
-			gga=false;
-		}else {cout<<"\"GGA\" has only values \"True\" or \"False\"\n"<<endl;
-		return 1;}
-	}
-
-    if(line3.find("restart")==-1){
-			cout<<"Keyword \"restart\" not found\n"<<endl;
-		return 1;
-		}
-		else{
-			string str2=line3.substr(line3.find("restart")+7);
-			string str3=str2.substr(str2.find_first_not_of(" "),str2.find_last_not_of(" "));
-			if(str3=="True" ){
-				restart=true;
-			}
-			else if(str3=="False"){
-				restart=false;
-			}else {cout<<"\"restart\" has only values \"True\" or \"False\"\n"<<endl;
-			return 1;}
-		}
-
-    if(line4.find("save")==-1){
- 			cout<<"Keyword \"save\" not found\n"<<endl;
- 		return 1;
- 		}
- 		else{
- 			string str2=line4.substr(line4.find("save")+4);
- 			string str3=str2.substr(str2.find_first_not_of(" "),str2.find_last_not_of(" "));
- 			if(str3=="True" ){
- 				save=true;
- 			}
- 			else if(str3=="False"){
- 				save=false;
- 			}else {cout<<"\"save\" has only values \"True\" or \"False\"\n"<<endl;
- 			return 1;}
- 		}
-
 //****************************************************************
 int n;
 int l;
@@ -167,49 +170,37 @@ if(Relativistic==false){
 
 
 	string orbital;
-	string configuration;
-	int i=0;
-	if(atomo.is_open()){
-		getline(atomo,configuration);
-			int pos_ini=0;
-			int pos_fin=0;
 
-			while((pos_fin=configuration.find(" ",pos_ini)) != string::npos){
+	for(int i=0;i<config.size();i++){
 
-				n_ocup=atof((configuration.substr(pos_ini+2,(pos_fin-pos_ini-2))).c_str());
-				orbital=configuration.substr(pos_ini,2);
+				n_ocup=atof(config[i].substr(2).c_str());
+				orbital=config[i].substr(0,2);
 				n=int(orbital[0]-'0');
 				l=x[orbital[1]];
 				Atom.push_back(new Orbital_norel(n,l,n_ocup,Z,-Z*Z/(2.*n*n),t,N));
 				index[orbital]=i;
-				pos_ini=pos_fin+1;
-                i++;
 
-			}
 
-			;
+
+
+
+
 
 
 	}
-	atomo.close();
+
 }
 else{
 
 	string orbital;
-	string configuration;
-	int i=0;
-	if(atomo.is_open()){
-		getline(atomo,configuration);
-			int pos_ini=0;
-			int pos_fin=0;
+	int j=0;
+	for(int i=0;i<config.size();i++){
 
-			while((pos_fin=configuration.find(" ",pos_ini)) != string::npos){
-
-				n_ocup=atof((configuration.substr(pos_ini+2,(pos_fin-pos_ini-2))).c_str());
-				orbital=configuration.substr(pos_ini,2);
+		        n_ocup=atof(config[i].substr(2).c_str());
+				orbital=config[i].substr(0,2);
 				n=int(orbital[0]-'0');
 				l=x[orbital[1]];
-				index[orbital]=i;
+				index[orbital]=j;
 				if(l>0){
 					double n_ocup_1=0;
 					double n_ocup_2=0;
@@ -234,16 +225,15 @@ else{
 
 					Atom.push_back(new Orbital_rel(n,l,n_ocup_2,1,Z,-Z*Z/(2.*n*n),t,N));
 					Atom.push_back(new Orbital_rel(n,l,n_ocup_1,-1,Z,-Z*Z/(2.*n*n),t,N));
-				    i++;
+				    j++;
 					}
 
 				else{Atom.push_back(new Orbital_rel(n,l,n_ocup,1,Z,-Z*Z/(2.*n*n),t,N));}
-	            i++;
-	            pos_ini=pos_fin+1;
+	            j++;
 
-			}
+
 		}
-		atomo.close();
+
 	}
 
 
@@ -293,6 +283,38 @@ void Scf::run(double w,double al,double ro,double alf){
 		vconf[i]=W/(1+exp(-a*(r[i]-r0)));
 		veff[i]=veff[i]+vconf[i];
 
+	}
+    cout<<"Wood-Saxon potencial:  W: "<<W<<"  a:"<<a<<"  r0:"<<r0<<endl;
+
+    cout<<"Functional :";
+	if (gga==true){
+		cout<<"PBE"<<endl;
+	}else{
+		cout<<"LDA"<<endl;
+	}
+
+	cout<<"Relativistic: ";
+	if (Relativistic==true){
+		cout<<"TRUE"<<endl;
+	}
+	else{
+		cout<<"FALSE"<<endl;
+	}
+
+
+	cout<<"restart: ";
+		if (restart==true){
+			cout<<"TRUE"<<endl;
+		}else{
+			cout<<"FALSE"<<endl;
+		}
+
+	cout<<"Save: ";
+	if (restart==true){
+		cout<<"TRUE"<<endl;
+	}
+	else{
+		cout<<"FALSE"<<endl;
 	}
 
 	/*Se crea spline y Orbital.Se resuelve el atomo hidrogenoide veff=-Z/r */
@@ -471,7 +493,7 @@ void Scf::Veff_noconf(Potential_spline &vefnc){
 
 void Scf::readpot(){
 	double en;
-	ifstream potfile("pot");
+	ifstream potfile(prefix+".pot");
 
 	for (int i=0;i<Atom.size();i++){
 		    potfile>>en;
@@ -487,7 +509,7 @@ void Scf::readpot(){
 }
 
 void Scf::savepot(){
-	ofstream pot_file("pot");
+	ofstream pot_file(prefix+".pot");
 	for (int i=0;i<Atom.size();i++){
 			pot_file<<Atom[i]->energy()<<endl;
 		}

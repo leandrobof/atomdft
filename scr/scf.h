@@ -11,8 +11,10 @@
 #include "hartree.h"
 #include "xc_potential.h"
 #include <map>
+#include <boost/tokenizer.hpp>
 
 enum ocupation{Average=0,Energy=1};
+
 
 
 void dens_inicial(double *r,double *rho,int N,int Z);
@@ -54,6 +56,7 @@ private:
     bool save;
     ocupation ocup_type;
     string SK[3];
+    string prefix;
     Xc *vxc;
     std::map<char,int> x;
     std::map<string,int> index;
@@ -67,7 +70,7 @@ public:
 	 * @param tmax valor maximo de grilla radial t
 	 * @param step longitud del paso .
 	 */
-    Scf(double tmin,double tmax,double step);
+    Scf();
     ~Scf();
     /**
      * Lee archivo y obtiene Z, la configuracion electronica, tipo de calculo:Relativista no relativista,
